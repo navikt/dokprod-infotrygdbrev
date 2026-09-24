@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified"
+		   elementFormDefault="qualified"
+		   xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+	<xs:include schemaLocation="infotrygd_felles.xsd"/>
+
+	<xs:element name="brevdata" type="brevdataType"/>
+
+	<xs:complexType name="brevdataType">
+		<xs:sequence>
+			<xs:element type="fellesType" name="felles"/>
+			<xs:element type="fagType" name="fag"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="fagType">
+		<xs:all>
+			<xs:element type="nonEmptyStringType" name="brevDato" />
+			<xs:element type="nonEmptyStringType" name="tittel" />
+			<xs:element type="brevinnholdListeType" name="brevinnholdListe"/>
+			<xs:element type="vedleggslisteType" name="vedleggsliste" minOccurs="0" />
+			<xs:element type="skanningType" name="skanning" minOccurs="0"/>
+		</xs:all>
+	</xs:complexType>
+	
+	<xs:complexType name="brevinnholdListeType">
+		<xs:sequence>
+			<xs:element type="brevinnholdType" name="brevinnhold" minOccurs="0" maxOccurs="unbounded" />
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="brevinnholdType">
+		<xs:all>
+			<xs:element type="nonEmptyStringType" name="brevtekst"/>
+		</xs:all>
+	</xs:complexType>
+	
+	
+	<xs:complexType name="vedleggslisteType">
+		<xs:all>
+			<xs:element type="xs:string" name="vedlegg1" minOccurs="0"/>
+			<xs:element type="xs:string" name="vedlegg2" minOccurs="0"/>
+			<xs:element type="xs:string" name="vedlegg3" minOccurs="0"/>
+		</xs:all>
+	</xs:complexType>
+	
+	<xs:complexType name="skanningType">
+		<xs:all>
+			<xs:element type="ovreBarkodeType" name="ovreBarkode" minOccurs="0"/>
+			<xs:element type="nedreBarkodeType" name="nedreBarkode" minOccurs="0"/>
+		</xs:all>
+	</xs:complexType>
+	
+	<xs:complexType name="ovreBarkodeType">
+		<xs:all>
+			<xs:element type="emptyOrOneStringType" name="kontrollsiffer" minOccurs="0"/>
+		</xs:all>
+	</xs:complexType>
+	
+	<xs:complexType name="nedreBarkodeType">
+		<xs:all>
+			<xs:element type="emptyOrTwoIntegerType" name="temaKode" minOccurs="0"/>
+			<xs:element type="emptyOrFourIntegerType" name="enhetId" minOccurs="0"/>
+			<xs:element type="emptyOrOneStringType" name="kontrollsiffer" minOccurs="0"/>
+		</xs:all>
+	</xs:complexType>
+	
+	<xs:simpleType name="emptyOrOneStringType">
+		<xs:restriction base='xs:string'>
+			<xs:minLength value="0"/>
+			<xs:maxLength value="1"/>
+		</xs:restriction>
+	</xs:simpleType>
+	
+	<xs:simpleType name="emptyOrOneIntegerType">
+		<xs:union>
+			<xs:simpleType>
+				<xs:restriction base='xs:string'>
+					<xs:length value="0"/>
+				</xs:restriction>
+			</xs:simpleType>
+			<xs:simpleType>
+				<xs:restriction base='xs:int'>
+					<xs:pattern value="\d{1}"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:union>
+	</xs:simpleType>
+	
+	<xs:simpleType name="emptyOrTwoIntegerType">
+		<xs:union>
+			<xs:simpleType>
+				<xs:restriction base='xs:string'>
+					<xs:length value="0"/>
+				</xs:restriction>
+			</xs:simpleType>
+			<xs:simpleType>
+				<xs:restriction base='xs:int'>
+					<xs:pattern value="\d{2}"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:union>
+	</xs:simpleType>
+		
+	<xs:simpleType name="emptyOrFourIntegerType">
+		<xs:union>
+			<xs:simpleType>
+				<xs:restriction base='xs:string'>
+					<xs:length value="0"/>
+				</xs:restriction>
+			</xs:simpleType>
+			<xs:simpleType>
+				<xs:restriction base='xs:int'>
+					<xs:pattern value="\d{4}"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:union>
+	</xs:simpleType>
+</xs:schema>
