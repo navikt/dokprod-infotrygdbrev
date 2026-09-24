@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<jaxb:bindings version="3.0" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+               xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+               xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://java.sun.com/xml/ns/jaxb http://java.sun.com/xml/ns/jaxb/bindingschema_2_0.xsd"
+               xmlns:annox="urn:jvnet.org:basicjaxb:xjc:annox">
+               jaxb:extensionBindingPrefixes="xjc annox">
+    <jaxb:globalBindings>
+        <xjc:simple/>
+    </jaxb:globalBindings>
+
+    <!-- Annotate the following classes with XmlRootElement -->
+	<jaxb:bindings schemaLocation="infotrygd_000044.xsd" node="/xs:schema">
+		<jaxb:bindings node="xs:complexType[@name='brevdataType']">
+			<annox:annotate>
+				<annox:annotate annox:class="jakarta.xml.bind.annotation.XmlRootElement" name="brevdata"/>
+			</annox:annotate>
+		</jaxb:bindings>
+	</jaxb:bindings>
+</jaxb:bindings>

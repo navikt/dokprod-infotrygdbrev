@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>dokprod-infotrygdbrev</artifactId>
+		<groupId>no.nav.dokprod</groupId>
+		<version>1-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>dokprod-batch-schemas</artifactId>
+	<packaging>jar</packaging>
+	<name>Dokprod Batch :: Schemas</name>
+
+	<dependencies>
+		<dependency>
+			<groupId>jakarta.xml.ws</groupId>
+			<artifactId>jakarta.xml.ws-api</artifactId>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.patrodyne.jvnet</groupId>
+				<artifactId>hisrc-higherjaxb30-maven-plugin</artifactId>
+				<version>${hisrc-jaxb.version}</version>
+				<dependencies>
+					<dependency>
+						<groupId>com.sun.xml.bind</groupId>
+						<artifactId>jaxb-impl</artifactId>
+						<version>${glassfish-jaxb.version}</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<id>generate-jaxb-bdok100-brevdata</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<generatePackage>no.nav.dokprod.batch.bdok100.brevdata44.xml.jaxb2.gen</generatePackage>
+							<schemaDirectory>src/main/resources/bdok100/brevdata</schemaDirectory>
+							<bindingDirectory>src/main/resources/bdok100/brevdata</bindingDirectory>
+							<generateDirectory>${project.build.directory}/generated-sources/xjc-bdok100-brevdata
+							</generateDirectory>
+							<strict>false</strict>
+							<plugins>
+								<dependency>
+									<groupId>org.patrodyne.jvnet</groupId>
+									<artifactId>hisrc-basicjaxb-plugins</artifactId>
+									<version>${hisrc-jaxb.version}</version>
+								</dependency>
+								<plugin>
+									<groupId>org.patrodyne.jvnet</groupId>
+									<artifactId>hisrc-hyperjaxb-annox-plugin</artifactId>
+									<version>${hisrc-jaxb.version}</version>
+								</plugin>
+							</plugins>
+							<args>
+								<arg>-Xannotate</arg>
+							</args>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>
