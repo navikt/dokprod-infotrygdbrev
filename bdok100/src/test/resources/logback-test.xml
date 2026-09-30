@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="false" debug="false">
+
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>[%t, %d, %-5p, %C:%L] - [%X{stepName} %X{brevOgArkivUserId}] - %m%n</pattern>
+		</encoder>
+	</appender>
+
+	<root level="WARN">
+<!--		 <appender-ref ref="CONSOLE"/>-->
+	</root>
+
+	<logger name="org.springframework" level="INFO"/>
+	<!--<logger name="org.springframework.jdbc" level="DEBUG" />-->
+	<!--<logger name="org.hsqldb" level="DEBUG"/>-->
+	<logger name="org.springframework.batch" level="INFO"/>
+	<!--<logger name="org.hibernate.SQL" level="DEBUG" />-->
+
+	<logger name="no.nav.dokprod" level="DEBUG"/>
+	<logger name="no.difi.vefa" level="DEBUG"/>
+
+	<!--<logger name="no.nav.dokprod.batch.bdok001" level="debug"/>-->
+
+	<!-- Ehcache specific -->
+	<!--<logger name="net.sf.ehcache" level="DEBUG"/>-->
+	<!--<logger name="org.springframework.cache.interceptor" level="TRACE"/>-->
+</configuration>

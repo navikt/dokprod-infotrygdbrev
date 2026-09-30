@@ -1,0 +1,66 @@
+1ODIQ02608240002923301111111111120161107           0000OK                                     ZH23B             2330 XXXXX_YY
+
+
+                                           210826
+
+
+
+ TEST TESTESEN
+ Testeveien 18
+ 1111 Test
+
+
+
+MELDING OM VEDTAK
+
+ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer massa diam.
+ Vivamus congue justo vel condimentum euismod. Donec tempor orci sit amet.
+ Nullam egestas enim vitae tortor gravida, quis viverra elit porta. Nam mi.
+ Morbi scelerisque cursus nisi, id elementum sem. Aenean ultricies, erat in.
+
+ Vestibulum efficitur eget mauris ac pharetra. Sed scelerisque vel nulla vitae.
+ Pellentesque volutpat commodo lectus, non ultrices odio varius quis.
+
+ Quisque eget venenatis velit. Fusce tempor elementum leo sit amet auctor.
+
+
+ Med vennlig hilsen
+ Nav
+
+
+
+
+ SAK SAKBEHANDLERSEN
+1ODIQ02608240001402881111111111120130108           1555OK                                     BA06B             0211 XXXXX_YY
+
+
+                                           210826
+
+
+
+ TEST TESTESEN
+ Testeveien 18
+ 1111 Test
+
+
+
+MELDING OM VEDTAK
+
+ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer massa diam.
+ Vivamus congue justo vel condimentum euismod. Donec tempor orci sit amet.
+ Nullam egestas enim vitae tortor gravida, quis viverra elit porta. Nam mi.
+ Morbi scelerisque cursus nisi, id elementum sem. Aenean ultricies, erat in.
+
+ Vestibulum efficitur eget mauris ac pharetra. Sed scelerisque vel nulla vitae.
+ Pellentesque volutpat commodo lectus, non ultrices odio varius quis.
+
+ Quisque eget venenatis velit. Fusce tempor elementum leo sit amet auctor.
+
+
+ Med vennlig hilsen
+ Nav
+
+
+
+
+ SAK SAKBEHANDLERSEN

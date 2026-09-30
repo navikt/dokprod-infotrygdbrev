@@ -1,0 +1,32 @@
+1ODIQ02608240002000001111111111120130109               OK                                     BA06B             0211 XXXXX_YY
+
+
+                                           210826
+
+
+
+ TEST TESTESEN
+ C/O TESTINE TESTESEN
+ Testgaten 1/2
+ PL-12345 WARSAWA
+ POLEN
+
+
+
+ MELDING OM VEDTAK
+
+ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer massa diam.
+ Vivamus congue justo vel condimentum euismod. Donec tempor orci sit amet.
+ Nullam egestas enim vitae tortor gravida, quis viverra elit porta. Nam mi.
+ Morbi scelerisque cursus nisi, id elementum sem. Aenean ultricies, erat in.
+
+ Vestibulum efficitur eget mauris ac pharetra. Sed scelerisque vel nulla vitae.
+ Pellentesque volutpat commodo lectus, non ultrices odio varius quis.
+
+ Quisque eget venenatis velit. Fusce tempor elementum leo sit amet auctor.
+
+
+ Med vennlig hilsen
+ Nav
+
+ SAK SAKBEHANDLERSEN

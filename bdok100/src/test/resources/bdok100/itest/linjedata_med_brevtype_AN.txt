@@ -1,0 +1,70 @@
+1ODIQ02608240001402881111111111120130108           1555AN                                     BA06B             0211 XXXXX_YY
+
+
+                                           210826
+
+
+
+ TEST TESTESEN
+ Testeveien 18
+ 1111 Test
+
+
+
+MELDING OM VEDTAK
+
+ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer massa diam, pulvinar sed est a, euismod viverra tortor.
+
+ Vivamus congue justo vel condimentum euismod. Donec tempor orci sit amet blandit scelerisque.
+
+ Nullam egestas enim vitae tortor gravida, quis viverra elit porta. Nam mi metus, condimentum non tellus ut, consequat rutrum est.
+
+ Morbi scelerisque cursus nisi, id elementum sem. BrevtypeAenean ultricies, erat in pulvinar mattis, arcu ante sagittis sem, eu vulputate velit metus nec orci. Curabitur nec ipsum diam.
+
+ Vestibulum efficitur eget mauris ac pharetra. Sed scelerisque vel nulla vitae sagittis.
+
+ Pellentesque volutpat commodo lectus, non ultrices odio varius quis. Maecenas id lectus gravida, tincidunt urna ac, rhoncus dolor.
+
+ Quisque eget venenatis velit. Fusce tempor elementum leo sit amet auctor. Mauris a porta risus.
+
+
+ Med vennlig hilsen
+ Nav
+
+
+
+
+ SAK SAKBEHANDLERSEN
+1ODIQ02608240001702891111111111120130109           1555OK                                     GSB1B             0211 XXXXX_YY
+
+
+                                           210826
+
+
+
+ TEST TESTESEN
+ Testeveien 18
+ 1111 Test
+
+
+
+MELDING OM VEDTAK
+
+ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer massa diam.
+ Vivamus congue justo vel condimentum euismod. Donec tempor orci sit amet.
+ Nullam egestas enim vitae tortor gravida, quis viverra elit porta. Nam mi.
+ Morbi scelerisque cursus nisi, id elementum sem. Aenean ultricies, erat in.
+
+ Vestibulum efficitur eget mauris ac pharetra. Sed scelerisque vel nulla vitae.
+ Pellentesque volutpat commodo lectus, non ultrices odio varius quis.
+
+ Quisque eget venenatis velit. Fusce tempor elementum leo sit amet auctor.
+
+
+ Med vennlig hilsen
+ Nav
+
+
+
+
+ SAK SAKBEHANDLERSEN
