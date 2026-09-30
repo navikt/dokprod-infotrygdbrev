@@ -1,0 +1,268 @@
+1ODIQ02608240002000001111111111120120509222222222221501BP                                     00P1B             0106 XXXXX_YY
+ LEGE T TESTESEN
+ Testgata 1
+ 0001 GAMLE OSLO
+
+
+
+
+
+
+
+
+
+ MELDING OM VEDTAK
+
+ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer massa diam.
+ Vivamus congue justo vel condimentum euismod. Donec tempor orci sit amet.
+ Nullam egestas enim vitae tortor gravida, quis viverra elit porta. Nam mi.
+ Morbi scelerisque cursus nisi, id elementum sem. Aenean ultricies, erat in.
+
+ Vestibulum efficitur eget mauris ac pharetra. Sed scelerisque vel nulla vitae.
+ Pellentesque volutpat commodo lectus, non ultrices odio varius quis.
+
+ Quisque eget venenatis velit. Fusce tempor elementum leo sit amet auctor.
+
+
+ Med vennlig hilsen
+ Nav
+
+ SAK SAKBEHANDLERSEN
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2BESØKSADRESSE:          POSTADRESSE:            TELEFON NAV KUNDESENTER:
+2NAV BØMLO               NAV BØMLO               12 34 56 78
+2TESTGATA 2              POSTBOKS 1
+2
+20001 BØMLO              0001 BØMLO              INTERNETTADR: WWW.NAV.NO
+1ODIQ02608240002100001111111111120130109           1794OK                                     YB99B             0101 XXXXX_YY
+
+
+                                           210826
+
+
+
+ TEST TESTESEN
+ Testeveien 18
+ 1111 Test
+
+
+
+ MELDING OM VEDTAK
+
+ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer massa diam.
+ Vivamus congue justo vel condimentum euismod. Donec tempor orci sit amet.
+ Nullam egestas enim vitae tortor gravida, quis viverra elit porta. Nam mi.
+ Morbi scelerisque cursus nisi, id elementum sem. Aenean ultricies, erat in.
+
+ Vestibulum efficitur eget mauris ac pharetra. Sed scelerisque vel nulla vitae.
+ Pellentesque volutpat commodo lectus, non ultrices odio varius quis.
+
+ Quisque eget venenatis velit. Fusce tempor elementum leo sit amet auctor.
+
+
+ Med vennlig hilsen
+ Nav
+
+ SAK SAKBEHANDLERSEN
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2BESØKSADRESSE:          POSTADRESSE:            TELEFON NAV KUNDESENTER:
+2NAV BØMLO               NAV BØMLO               12 34 56 78
+2TESTGATA 2              POSTBOKS 1
+2
+20001 BØMLO              0001 BØMLO              INTERNETTADR: WWW.NAV.NO
+1ODIQ02608240002200001111111111120130109           1776OK                                     BA33B             0101 XXXXX_YY
+
+
+                                           210826
+
+
+
+ TEST TESTESEN
+ Testeveien 18
+ 1111 Test
+ PL-12345
+ POLEN
+
+
+
+ MELDING OM VEDTAK
+
+ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer massa diam.
+ Vivamus congue justo vel condimentum euismod. Donec tempor orci sit amet.
+ Nullam egestas enim vitae tortor gravida, quis viverra elit porta. Nam mi.
+ Morbi scelerisque cursus nisi, id elementum sem. Aenean ultricies, erat in.
+
+ Vestibulum efficitur eget mauris ac pharetra. Sed scelerisque vel nulla vitae.
+ Pellentesque volutpat commodo lectus, non ultrices odio varius quis.
+
+ Quisque eget venenatis velit. Fusce tempor elementum leo sit amet auctor.
+
+
+ Med vennlig hilsen
+ Nav
+
+ SAK SAKBEHANDLERSEN
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2BESØKSADRESSE:          POSTADRESSE:            TELEFON NAV KUNDESENTER:
+2NAV BØMLO               NAV BØMLO               12 34 56 78
+2TESTGATA 2              POSTBOKS 1
+2
+20001 BØMLO              0001 BØMLO              INTERNETTADR: WWW.NAV.NO
+N                                                VEDLEGG
+
+
+ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer massa diam.
+ Vivamus congue justo vel condimentum euismod. Donec tempor orci sit amet.
+ Nullam egestas enim vitae tortor gravida, quis viverra elit porta. Nam mi.
+ Morbi scelerisque cursus nisi, id elementum sem. Aenean ultricies, erat in.
+
+ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer massa diam.
+ Vivamus congue justo vel condimentum euismod. Donec tempor orci sit amet.
+ Nullam egestas enim vitae tortor gravida, quis viverra elit porta. Nam mi.
+ Morbi scelerisque cursus nisi, id elementum sem. Aenean ultricies, erat in.
+
+ Vestibulum efficitur eget mauris ac pharetra. Sed scelerisque vel nulla vitae.
+ Pellentesque volutpat commodo lectus, non ultrices odio varius quis.
+
+ Quisque eget venenatis velit. Fusce tempor elementum leo sit amet auctor.
+1ODIQ02608240002300001111111111120130109           1765OK                                     SP98B             0101 XXXXX_YY
+
+
+                                           210826
+
+
+
+ TEST TESTESEN
+ Testeveien 18
+ 1111 Test
+
+
+
+ MELDING OM VEDTAK
+
+ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer massa diam.
+ Vivamus congue justo vel condimentum euismod. Donec tempor orci sit amet.
+ Nullam egestas enim vitae tortor gravida, quis viverra elit porta. Nam mi.
+ Morbi scelerisque cursus nisi, id elementum sem. Aenean ultricies, erat in.
+
+ Vestibulum efficitur eget mauris ac pharetra. Sed scelerisque vel nulla vitae.
+ Pellentesque volutpat commodo lectus, non ultrices odio varius quis.
+
+ Quisque eget venenatis velit. Fusce tempor elementum leo sit amet auctor.
+
+
+ Med vennlig hilsen
+ Nav
+
+ SAK SAKBEHANDLERSEN
+1ODIQ02608240002400001111111111120130109           1570OK                                     GSB1B             0104 XXXXX_YY
+
+
+                                           210826
+
+
+
+ TEST TESTESEN
+ Testeveien 18
+ 1111 Test
+
+
+
+ MELDING OM VEDTAK
+
+ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer massa diam.
+ Vivamus congue justo vel condimentum euismod. Donec tempor orci sit amet.
+ Nullam egestas enim vitae tortor gravida, quis viverra elit porta. Nam mi.
+ Morbi scelerisque cursus nisi, id elementum sem. Aenean ultricies, erat in.
+
+ Vestibulum efficitur eget mauris ac pharetra. Sed scelerisque vel nulla vitae.
+ Pellentesque volutpat commodo lectus, non ultrices odio varius quis.
+
+ Quisque eget venenatis velit. Fusce tempor elementum leo sit amet auctor.
+
+
+ Med vennlig hilsen
+ Nav
+
+ SAK SAKBEHANDLERSEN

@@ -8,13 +8,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>dokprod-batch-schemas</artifactId>
-	<packaging>jar</packaging>
 	<name>Dokprod Batch :: Schemas</name>
 
 	<dependencies>
 		<dependency>
-			<groupId>jakarta.xml.ws</groupId>
-			<artifactId>jakarta.xml.ws-api</artifactId>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
 		</dependency>
 	</dependencies>
 

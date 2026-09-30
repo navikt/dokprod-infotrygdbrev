@@ -16,44 +16,282 @@
 	<name>Dokprod Infotrygdbrev</name>
 
 	<modules>
-		<module>app</module>
-		<module>core</module>
+		<module>infotrygdbrev-app</module>
+		<module>bdok100</module>
 		<module>dokprod-batch-schemas</module>
 	</modules>
 
 	<properties>
 		<java.version>25</java.version>
 
+		<dokprod-melding-virksomhet-qdok001.version>45-26485e1</dokprod-melding-virksomhet-qdok001.version>
 		<hisrc-jaxb.version>3.0.0</hisrc-jaxb.version>
+
+		<!-- raw import av properties her: -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<argLine>-Dfile.encoding=UTF-8</argLine>
+		<spring.version>5.3.39</spring.version>
+
+		<caffeine.version>2.8.8</caffeine.version>
+		<commons-io.version>2.17.0</commons-io.version>
+		<commons-lang3.version>3.17.0</commons-lang3.version>
+		<jaxb.version>2.3.1</jaxb.version>
+
+		<difi-vefa-validator.version>2.0.3-NAV</difi-vefa-validator.version>
+		<guava.version>32.0.0-jre</guava.version>
+		<jaxb2-commons.version>0.6.5</jaxb2-commons.version>
+
+		<brevogarkiv-batch-common.version>1.0-SNAPSHOT</brevogarkiv-batch-common.version>
+
+		<httpclient.version>4.5.13</httpclient.version>
+		<xalan.version>2.7.3</xalan.version>
+		<xstream.version>1.4.21</xstream.version>
+		<jettison.version>1.5.6</jettison.version>
+
+		<joda-time.version>2.7</joda-time.version>
+		<bouncycastle.version>1.84</bouncycastle.version>
+		<byte-buddy.version>1.12.10</byte-buddy.version>
+
+		<hypersistence-utils.version>3.16.0</hypersistence-utils.version>
+		<jackson-module-jakarta-xmlbind-annotation.version>3.2.3</jackson-module-jakarta-xmlbind-annotation.version>
+		<jboss-jms-api_2.0_spec.version>2.0.0.Final</jboss-jms-api_2.0_spec.version>
+		<jboss-servlet-api_4.0_spec.version>2.0.0.Final</jboss-servlet-api_4.0_spec.version>
+		<jboss-annotations-api_1.3_spec.version>2.0.1.Final</jboss-annotations-api_1.3_spec.version>
+		<ojdbc8.version>12.2.0.1</ojdbc8.version>
+		<jboss-jaxrs-api_2.1_spec.version>2.0.1.Final</jboss-jaxrs-api_2.1_spec.version>
+		<jakarta.el.version>3.0.4</jakarta.el.version>
+		<jakarta.jws-api.version>2.1.0</jakarta.jws-api.version>
+		<jakarta.activation.version>1.2.1</jakarta.activation.version>
+		<!-- used for test -->
+		<junit-vintage-engine.version>6.1.3</junit-vintage-engine.version>
+		<mockito-core.version>4.6.1</mockito-core.version>
+		<hsqldb.version>2.7.1</hsqldb.version>
+		<!-- plugins -->
+		<wagon-webdav-jackrabbit.version>3.5.3</wagon-webdav-jackrabbit.version>
+		<maven-toolchains-plugin.version>3.2.0</maven-toolchains-plugin.version>
+		<maven-surefire-plugin.version>3.5.0</maven-surefire-plugin.version>
+		<maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+		<maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
+		<maven-ear-plugin.version>3.3.0</maven-ear-plugin.version>
+		<maven-war-plugin.version>3.4.0</maven-war-plugin.version>
+		<maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
+		<maven-jaxb2-plugin.version>0.14.0</maven-jaxb2-plugin.version>
+		<maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
 	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>xalan</groupId>
+				<artifactId>xalan</artifactId>
+				<version>${xalan.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.thoughtworks.xstream</groupId>
+				<artifactId>xstream</artifactId>
+				<version>${xstream.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.codehaus.jettison</groupId>
+				<artifactId>jettison</artifactId>
+				<version>${jettison.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient</artifactId>
+				<version>${httpclient.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>no.nav.brevogarkiv</groupId>
+				<artifactId>brevogarkiv-batch-common</artifactId>
+				<version>${brevogarkiv-batch-common.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>joda-time</groupId>
+				<artifactId>joda-time</artifactId>
+				<version>${joda-time.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${guava.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.bytebuddy</groupId>
+				<artifactId>byte-buddy</artifactId>
+				<version>${byte-buddy.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.bytebuddy</groupId>
+				<artifactId>byte-buddy-agent</artifactId>
+				<version>${byte-buddy.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.ben-manes.caffeine</groupId>
+				<artifactId>caffeine</artifactId>
+				<version>${caffeine.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-io</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>${commons-io.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.hypersistence</groupId>
+				<artifactId>hypersistence-utils-hibernate-73</artifactId>
+				<version>${hypersistence-utils.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>tools.jackson.module</groupId>
+				<artifactId>jackson-module-jakarta-xmlbind-annotations</artifactId>
+				<version>${jackson-module-jakarta-xmlbind-annotation.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>no.difi.vefa</groupId>
+				<artifactId>validator-core</artifactId>
+				<version>${difi-vefa-validator.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.bouncycastle</groupId>
+						<artifactId>bcprov-jdk15on</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.bouncycastle</groupId>
+						<artifactId>bcpkix-jdk15on</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>${commons-lang3.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcprov-jdk18on</artifactId>
+				<version>${bouncycastle.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcpkix-jdk18on</artifactId>
+				<version>${bouncycastle.version}</version>
+			</dependency>
+			<!-- Provided dependencies -->
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+				<version>${lombok.version}</version>
+				<scope>provided</scope>
+			</dependency>
+			<!-- Test dependencies -->
+			<dependency>
+				<groupId>org.springframework.batch</groupId>
+				<artifactId>spring-batch-test</artifactId>
+				<version>${spring-batch.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.junit.vintage</groupId>
+				<artifactId>junit-vintage-engine</artifactId>
+				<version>${junit-vintage-engine.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-core</artifactId>
+				<version>${mockito-core.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.hsqldb</groupId>
+				<artifactId>hsqldb</artifactId>
+				<version>${hsqldb.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<!-- End test dependencies -->
+		</dependencies>
+	</dependencyManagement>
 
 	<dependencies>
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-batch</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-batch-jdbc</artifactId>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
 		</dependency>
 
+		<!-- Logging dependecies -->
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-batch-jdbc-test</artifactId>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+		</dependency>
+
+		<!-- Test dependencies -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-batch-test</artifactId>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- End test dependencies -->
 	</dependencies>
 
 	<build>
+		<pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<configuration>
+					<argLine>-Dio.netty.allocator.type=pooled</argLine>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-toolchains-plugin</artifactId>
+				<version>${maven-toolchains-plugin.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>toolchain</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<toolchains>
+						<jdk>
+							<version>${java.version}</version>
+							<vendor>openjdk</vendor>
+						</jdk>
+					</toolchains>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
