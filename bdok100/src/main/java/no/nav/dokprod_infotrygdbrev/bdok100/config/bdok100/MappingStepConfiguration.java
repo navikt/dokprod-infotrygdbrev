@@ -1,4 +1,4 @@
-package no.nav.dokprod_infotrygdbrev.bdok100.config.config.bdok100;
+package no.nav.dokprod_infotrygdbrev.bdok100.config.bdok100;
 
 import jakarta.persistence.EntityManagerFactory;
 import no.nav.dokprod_infotrygdbrev.bdok100.domain.Bdok100ArbTbl;
@@ -25,7 +25,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.WORK_UNIT_KEY;
-import static no.nav.dokprod_infotrygdbrev.bdok100.config.config.Bdok100Config.createArbTblReaderWithoutQuery;
+import static no.nav.dokprod_infotrygdbrev.bdok100.config.Bdok100Config.createArbTblReaderWithoutQuery;
 
 /**
  * Step configuration for mapping of Linjedata and Journaldata

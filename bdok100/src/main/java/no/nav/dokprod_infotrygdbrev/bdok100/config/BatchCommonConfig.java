@@ -1,11 +1,10 @@
-package no.nav.dokprod_infotrygdbrev.bdok100.config.config;
+package no.nav.dokprod_infotrygdbrev.bdok100.config;
 
 import no.nav.brevogarkiv.batch.common.CommonBatchInputParameters;
 import no.nav.brevogarkiv.batch.common.ExecutionContextWorkUnitCompletionPolicy;
 import no.nav.brevogarkiv.batch.common.LogContextListener;
 import no.nav.brevogarkiv.batch.common.MaxFailuresChunkListener;
 import no.nav.brevogarkiv.batch.common.validator.CommonJobParametersValidator;
-import no.nav.dokprod_infotrygdbrev.bdok100.config.ConsumerConfig;
 import no.nav.dokprod_infotrygdbrev.bdok100.repo.Bdok100Repo;
 import no.nav.dokprod_infotrygdbrev.bdok100.support.AsyncSakConsumer;
 import no.nav.dokprod_infotrygdbrev.common.ExitStatusJobExecutionListener;
@@ -13,7 +12,6 @@ import no.nav.dokprod_infotrygdbrev.common.UserIdMdcJobExecutionListener;
 import no.nav.dokprod_infotrygdbrev.common.support.InputDirectoryValidationTasklet;
 import no.nav.dokprod_infotrygdbrev.common.support.JobCompletionFileHandler;
 import no.nav.dokprod_infotrygdbrev.consumer.SakService;
-import no.nav.dokprod_infotrygdbrev.consumer.sts.StsRestConsumer;
 import no.nav.dokprod_infotrygdbrev.serializer.ConverterCapableXStreamExecutionContextStringSerializer;
 import no.nav.dokprod_infotrygdbrev.serializer.LocalDateConverter;
 import no.nav.dokprod_infotrygdbrev.serializer.LocalDateTimeConverter;
@@ -29,6 +27,7 @@ import org.springframework.batch.core.listener.ChunkListener;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -56,7 +55,7 @@ import static no.nav.dokprod_infotrygdbrev.common.BDOKCommonBatchInputParameters
  * Common Spring configuration for all BDOK batches
  */
 @Configuration
-@Import({ConsumerConfig.class, StsRestConsumer.class, Bdok100Config.class})
+@Import({ConsumerConfig.class, Bdok100Config.class})
 @EnableAsync
 @EnableBatchProcessing
 @EnableJpaRepositories(basePackageClasses = {Bdok100Repo.class})

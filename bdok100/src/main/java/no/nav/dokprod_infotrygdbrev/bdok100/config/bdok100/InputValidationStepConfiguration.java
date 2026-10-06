@@ -1,4 +1,4 @@
-package no.nav.dokprod_infotrygdbrev.bdok100.config.config.bdok100;
+package no.nav.dokprod_infotrygdbrev.bdok100.config.bdok100;
 
 import com.google.common.collect.Lists;
 import lombok.SneakyThrows;

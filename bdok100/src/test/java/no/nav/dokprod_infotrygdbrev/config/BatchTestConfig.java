@@ -2,8 +2,8 @@ package no.nav.dokprod_infotrygdbrev.config;
 
 import no.nav.brevogarkiv.batch.common.CommonBatchInputParameters;
 import no.nav.brevogarkiv.batch.common.validator.CommonJobParametersValidator;
-import no.nav.dokprod_infotrygdbrev.bdok100.config.config.BatchCommonConfig;
-import no.nav.dokprod_infotrygdbrev.bdok100.config.config.Bdok100Config;
+import no.nav.dokprod_infotrygdbrev.bdok100.config.BatchCommonConfig;
+import no.nav.dokprod_infotrygdbrev.bdok100.config.Bdok100Config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
