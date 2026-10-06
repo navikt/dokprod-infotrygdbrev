@@ -1,4 +1,4 @@
-package no.nav.dokprod_infotrygdbrev.bdok100.config.config.bdok100;
+package no.nav.dokprod_infotrygdbrev.bdok100.config.bdok100;
 
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +38,7 @@ import javax.sql.DataSource;
 import java.util.Map;
 
 import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.WORK_UNIT_KEY;
-import static no.nav.dokprod_infotrygdbrev.bdok100.config.config.Bdok100Config.createArbTblReaderWithoutQuery;
+import static no.nav.dokprod_infotrygdbrev.bdok100.config.Bdok100Config.createArbTblReaderWithoutQuery;
 import static no.nav.dokprod_infotrygdbrev.bdok100.domain.Bdok100Status.BEHANDLET;
 import static no.nav.dokprod_infotrygdbrev.bdok100.domain.Bdok100Status.TIL_BEHANDLING;
 import static no.nav.dokprod_infotrygdbrev.bdok100.support.mappers.ProduserIkkeRedigerbartDokumentXmlMapper.BDOK100_PREFIX;

@@ -1,4 +1,4 @@
-package no.nav.dokprod_infotrygdbrev.bdok100.config.config.bdok100;
+package no.nav.dokprod_infotrygdbrev.bdok100.config.bdok100;
 
 import no.nav.dok.meldinger.virksomhet.dokumentproduksjon.ProduserIkkeRedigerbartDokument;
 import no.nav.dokprod.batch.bdok100.brevdata44.xml.jaxb2.gen.Brevdata;

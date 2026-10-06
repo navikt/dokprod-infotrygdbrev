@@ -1,4 +1,4 @@
-package no.nav.dokprod_infotrygdbrev.bdok100.config.config;
+package no.nav.dokprod_infotrygdbrev.bdok100.config;
 
 import no.nav.brevogarkiv.batch.common.CommonBatchInputParameters;
 import no.nav.brevogarkiv.batch.common.validator.CommonJobParametersValidator;
