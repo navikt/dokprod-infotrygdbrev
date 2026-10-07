@@ -19,6 +19,7 @@
 		<module>infotrygdbrev-app</module>
 		<module>bdok100</module>
 		<module>dokprod-batch-schemas</module>
+		<module>brevogarkiv-batch-common</module>
 	</modules>
 
 	<properties>
@@ -41,7 +42,7 @@
 		<guava.version>32.0.0-jre</guava.version>
 		<jaxb2-commons.version>0.6.5</jaxb2-commons.version>
 
-		<brevogarkiv-batch-common.version>1.0-SNAPSHOT</brevogarkiv-batch-common.version>
+		<!-- <brevogarkiv-batch-common.version>1.0-SNAPSHOT</brevogarkiv-batch-common.version> -->
 
 		<httpclient.version>4.5.13</httpclient.version>
 		<xalan.version>2.7.3</xalan.version>
@@ -101,11 +102,13 @@
 				<artifactId>httpclient</artifactId>
 				<version>${httpclient.version}</version>
 			</dependency>
+			<!--
 			<dependency>
 				<groupId>no.nav.brevogarkiv</groupId>
 				<artifactId>brevogarkiv-batch-common</artifactId>
 				<version>${brevogarkiv-batch-common.version}</version>
 			</dependency>
+			-->
 			<dependency>
 				<groupId>joda-time</groupId>
 				<artifactId>joda-time</artifactId>

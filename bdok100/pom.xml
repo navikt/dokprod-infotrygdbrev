@@ -19,6 +19,7 @@
 		<dependency>
 			<groupId>no.nav.brevogarkiv</groupId>
 			<artifactId>brevogarkiv-batch-common</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
