@@ -50,7 +50,7 @@
 
 		<joda-time.version>2.7</joda-time.version>
 		<bouncycastle.version>1.84</bouncycastle.version>
-		<byte-buddy.version>1.12.10</byte-buddy.version>
+		<byte-buddy.version>1.18.14</byte-buddy.version>
 
 		<hypersistence-utils.version>3.16.0</hypersistence-utils.version>
 		<jackson-module-jakarta-xmlbind-annotation.version>3.2.3</jackson-module-jakarta-xmlbind-annotation.version>
