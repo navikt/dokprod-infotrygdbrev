@@ -1,0 +1,17 @@
+{
+  "APPNAVN": "dokprod-infotrygdbrev-q1",
+  "ENVIRONMENT": "q1",
+  "MIN_REPLICAS": "1",
+  "MAX_REPLICAS": "1",
+  "DOKPROD_INFOTRYGDBREV_SECRET": "dokprod-infotrygdbrev-q1",
+  "DOKPROD_INFOTRYGDBREV_CONFIGMAP": "dokprod-infotrygdbrev-q1",
+  "DOKPROD_INFOTRYGDBREV_ENDPOINTS_PDL_URL": "http://pdl-api-q1.pdl.svc.nais.local/graphql",
+  "DOKPROD_INFOTRYGDBREV_ENDPOINTS_PDL_SCOPE": "api://dev-fss.pdl.pdl-api-q1/.default",
+  "DOKPROD_INFOTRYGDBREV_ENDPOINTS_SAK_URL":"http://sak-q1.teamdokumenthandtering.svc.nais.local",
+  "DOKPROD_INFOTRYGDBREV_ENDPOINTS_SAK_SCOPE": "api://dev-fss.teamdokumenthandtering.sak-q1/.default",
+  "MQGATEWAY01_CHANNEL_SECURENAME": "Q1_DOKPRODBATCH_SSL",
+  "MQGATEWAY01_HOSTNAME": "mqls01.preprod.local",
+  "MQGATEWAY01_PORT": "1413",
+  "MQGATEWAY01_NAME": "MQLS01",
+  "DOKPROD_INFOTRYGDBREV_QDOK001_QUEUENAME": "QA.Q1_DOKPROD.QDOK001_PRODUSER_DOKUMENT_LAV"
+}

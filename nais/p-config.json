@@ -1,0 +1,17 @@
+{
+  "APPNAVN": "dokprod-infotrygdbrev",
+  "ENVIRONMENT": "p",
+  "MIN_REPLICAS": "1",
+  "MAX_REPLICAS": "1",
+  "DOKPROD_INFOTRYGDBREV_SECRET": "dokdistsentralprint",
+  "DOKPROD_INFOTRYGDBREV_CONFIGMAP": "dokdistsentralprint",
+  "DOKPROD_INFOTRYGDBREV_ENDPOINTS_PDL_URL": "http://pdl-api.pdl.svc.nais.local/graphql",
+  "DOKPROD_INFOTRYGDBREV_ENDPOINTS_PDL_SCOPE": "api://prod-fss.pdl.pdl-api/.default",
+  "DOKPROD_INFOTRYGDBREV_ENDPOINTS_SAK_URL":"http://sak.teamdokumenthandtering.svc.nais.local",
+  "DOKPROD_INFOTRYGDBREV_ENDPOINTS_SAK_SCOPE": "api://prod-fss.teamdokumenthandtering.sak/.default",
+  "MQGATEWAY01_CHANNEL_SECURENAME": "P_DOKPRODBATCH_SSL",
+  "MQGATEWAY01_HOSTNAME": "mpls01.adeo.no",
+  "MQGATEWAY01_PORT": "1414",
+  "MQGATEWAY01_NAME": "MPLS01",
+  "DOKPROD_INFOTRYGDBREV_QDOK001_QUEUENAME": "QA.P_DOKPROD.QDOK001_PRODUSER_DOKUMENT_LAV"
+}
