@@ -69,7 +69,7 @@
 		<hsqldb.version>2.7.1</hsqldb.version>
 		<!-- plugins -->
 		<wagon-webdav-jackrabbit.version>3.5.3</wagon-webdav-jackrabbit.version>
-		<maven-toolchains-plugin.version>3.2.0</maven-toolchains-plugin.version>
+		<maven-toolchains-plugin.version>3.3.0</maven-toolchains-plugin.version>
 		<maven-surefire-plugin.version>3.5.0</maven-surefire-plugin.version>
 		<maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
 		<maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
