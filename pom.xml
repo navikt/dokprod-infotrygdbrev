@@ -49,7 +49,7 @@
 		<xstream.version>1.4.21</xstream.version>
 		<jettison.version>1.5.7</jettison.version>
 
-		<joda-time.version>2.7</joda-time.version>
+		<joda-time.version>2.14.4</joda-time.version>
 		<bouncycastle.version>1.84</bouncycastle.version>
 		<byte-buddy.version>1.12.10</byte-buddy.version>
 
