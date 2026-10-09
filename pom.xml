@@ -44,7 +44,7 @@
 
 		<!-- <brevogarkiv-batch-common.version>1.0-SNAPSHOT</brevogarkiv-batch-common.version> -->
 
-		<httpclient.version>4.5.13</httpclient.version>
+		<httpclient.version>4.5.14</httpclient.version>
 		<xalan.version>2.7.3</xalan.version>
 		<xstream.version>1.4.21</xstream.version>
 		<jettison.version>1.5.7</jettison.version>
