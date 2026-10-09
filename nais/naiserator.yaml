@@ -41,6 +41,12 @@ spec:
       value: {{ MQGATEWAY01_CHANNEL_SECURENAME }}
     - name: DOKPROD_INFOTRYGDBREV_QDOK001_QUEUENAME
       value: {{ DOKPROD_INFOTRYGDBREV_QDOK001_QUEUENAME }}
+    - name: SPRING_DATASOURCE_URL
+      value: "$(NAIS_DATABASE_DOKPROD_INFOTRYGDBREV_DOKPROD_INFOTRYGDBREV_JDBC_URL)"
+    - name: SPRING_DATASOURCE_USERNAME
+      value: "$(NAIS_DATABASE_DOKPROD_INFOTRYGDBREV_DOKPROD_INFOTRYGDBREV_USERNAME)"
+    - name: SPRING_DATASOURCE_PASSWORD
+      value: "$(NAIS_DATABASE_DOKPROD_INFOTRYGDBREV_DOKPROD_INFOTRYGDBREV_PASSWORD)"
     - name: OTEL_RESOURCE_ATTRIBUTES
       value: "deployment.environment.name={{ ENVIRONMENT }}"
     - name: SFTP_PRIVATE_KEY_FILE
@@ -70,6 +76,12 @@ spec:
     requests:
       cpu: 10m
       memory: 256Mi
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_18
+        tier: db-f1-micro
+        databases:
+          - name: DOKPROD_INFOTRYGDBREV
   observability:
     autoInstrumentation:
       enabled: true
