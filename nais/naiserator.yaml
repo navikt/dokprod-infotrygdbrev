@@ -22,7 +22,7 @@ spec:
               -Djavax.net.ssl.keyStoreType=jks
               -Dio.netty.allocator.type=pooled
               -XX:MaxRAMPercentage=75
-              $(JAVA_PROXY_OPTIONS) $(JAVA_TRUSTSTORE_OPTIONS)"
+              $(JAVA_TRUSTSTORE_OPTIONS)"
     - name: DOKPROD_INFOTRYGDBREV_ENDPOINTS_PDL_URL
       value: {{ DOKPROD_INFOTRYGDBREV_ENDPOINTS_PDL_URL }}
     - name: DOKPROD_INFOTRYGDBREV_ENDPOINTS_PDL_SCOPE
