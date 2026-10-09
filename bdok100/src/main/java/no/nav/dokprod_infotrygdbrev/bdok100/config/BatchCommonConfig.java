@@ -61,27 +61,27 @@ import static no.nav.dokprod_infotrygdbrev.common.BDOKCommonBatchInputParameters
 @EnableJpaRepositories(basePackageClasses = {Bdok100Repo.class})
 public class BatchCommonConfig implements AsyncConfigurer {
 
-	@Value("${default.threadpool.corepoolsize}")
-	private int corePoolSize;
-	@Value("${default.threadpool.maxpoolsize}")
-	private int maxPoolSize;
-	@Value("${default.threadpool.queuecapacity}")
-	private int queueCapacity;
+	// @Value("${default.threadpool.corepoolsize}")
+	// private int corePoolSize;
+	// @Value("${default.threadpool.maxpoolsize}")
+	// private int maxPoolSize;
+	// @Value("${default.threadpool.queuecapacity}")
+	// private int queueCapacity;
 
-	@Value("${gsak.threadpool.corepoolsize}")
-	private int corePoolSizeGsak;
-	@Value("${gsak.threadpool.maxpoolsize}")
-	private int maxPoolSizeGsak;
-	@Value("${gsak.threadpool.queuecapacity}")
-	private int queueCapacityGsak;
+	// @Value("${gsak.threadpool.corepoolsize}")
+	// private int corePoolSizeGsak;
+	// @Value("${gsak.threadpool.maxpoolsize}")
+	// private int maxPoolSizeGsak;
+	// @Value("${gsak.threadpool.queuecapacity}")
+	// private int queueCapacityGsak;
 
 	@Bean
 	@Override
 	public Executor getAsyncExecutor() {
 		ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-		threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
-		threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
-		threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
+		// threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
+		// threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
+		// threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
 		threadPoolTaskExecutor.setThreadNamePrefix("DefaultBatchThreadPool-");
 		threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
 		return threadPoolTaskExecutor;
@@ -90,9 +90,9 @@ public class BatchCommonConfig implements AsyncConfigurer {
 	@Bean
 	public TaskExecutor gsakAsyncExecutor() {
 		ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-		threadPoolTaskExecutor.setCorePoolSize(corePoolSizeGsak);
-		threadPoolTaskExecutor.setMaxPoolSize(maxPoolSizeGsak);
-		threadPoolTaskExecutor.setQueueCapacity(queueCapacityGsak);
+		// threadPoolTaskExecutor.setCorePoolSize(corePoolSizeGsak);
+		// threadPoolTaskExecutor.setMaxPoolSize(maxPoolSizeGsak);
+		// threadPoolTaskExecutor.setQueueCapacity(queueCapacityGsak);
 		threadPoolTaskExecutor.setThreadNamePrefix("GsakThreadPool-");
 		threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
 		return threadPoolTaskExecutor;
