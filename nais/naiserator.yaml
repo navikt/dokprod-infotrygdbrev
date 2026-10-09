@@ -81,9 +81,9 @@ spec:
   accessPolicy:
     outbound:
       external:
-        host: {{ MQGATEWAY01_HOSTNAME }}
-        ports:
-          port: {{ MQGATEWAY01_PORT }}
+        - host: {{ MQGATEWAY01_HOSTNAME }}
+          ports:
+            - port: {{ MQGATEWAY01_PORT }}
   azure:
     application:
       enabled: true
