@@ -4,11 +4,14 @@ import no.nav.brevogarkiv.batch.common.CommonBatchInputParameters;
 import no.nav.brevogarkiv.batch.common.validator.CommonJobParametersValidator;
 import no.nav.dokprod_infotrygdbrev.bdok100.config.BatchCommonConfig;
 import no.nav.dokprod_infotrygdbrev.bdok100.config.Bdok100Config;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
+@EnableAutoConfiguration
 @Import({BatchCommonConfig.class,
 		RepositoryTestConfig.class,
 		Bdok100Config.class,
@@ -16,6 +19,7 @@ import org.springframework.context.annotation.Import;
 		JmsConsumerTestConfig.class,
 		ConsumerTestConfig.class
 })
+@ComponentScan("no.nav.dokprod_infotrygdbrev.bdok100.support.to")
 public class BatchTestConfig {
 	/**
 	 * Override startTimeParameter to allow milliseconds, needed in tests.

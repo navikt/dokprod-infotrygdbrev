@@ -28,8 +28,6 @@ import no.nav.dokprod_infotrygdbrev.bdok100.domain.Bdok100Status;
 import no.nav.dokprod_infotrygdbrev.bdok100.repo.Bdok100Repo;
 import no.nav.dokprod_infotrygdbrev.bdok100.support.Bdok100StatusChecker;
 import no.nav.dokprod_infotrygdbrev.bdok100.support.Jpa2PingRepository;
-import no.nav.dokprod_infotrygdbrev.bdok100.support.to.NAVKontors;
-import no.nav.dokprod_infotrygdbrev.bdok100.support.to.VedleggsLister;
 import no.nav.dokprod_infotrygdbrev.common.ExitStatusJobExecutionListener;
 import no.nav.dokprod_infotrygdbrev.common.UserIdMdcJobExecutionListener;
 import no.nav.dokprod_infotrygdbrev.common.support.BeanValidator;
@@ -168,16 +166,6 @@ public class Bdok100Config {
 		ExitStatusJobExecutionListener listener = new ExitStatusJobExecutionListener();
 		listener.setStatusChecker(bdok100StatusChecker);
 		return listener;
-	}
-
-	@Bean
-	public NAVKontors getKontorMap() {
-		return new NAVKontors();
-	}
-
-	@Bean
-	public VedleggsLister getVedleggsMap() {
-		return new VedleggsLister();
 	}
 
 	@Bean

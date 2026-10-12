@@ -1,10 +1,9 @@
-package no.nav.dokprod_infotrygdbrev.bdok100.config;
+package no.nav.dokprod_infotrygdbrev.config;
 
 import no.nav.dokprod_infotrygdbrev.util.MDCMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.support.destination.DynamicDestinationResolver;
 import org.springframework.jndi.JndiObjectFactoryBean;
 
 import jakarta.jms.ConnectionFactory;
@@ -18,16 +17,10 @@ public class JmsProviderConfig {
 	public JmsTemplate jmsQueueTemplate() {
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(connectionFactory());
-		template.setDestinationResolver(jmsDestinationResolver());
 		template.setPubSubDomain(false);
 		template.setReceiveTimeout(20000L);
 		template.setMessageConverter(mdcMessageConverter());
 		return template;
-	}
-
-	@Bean
-	public DynamicDestinationResolver jmsDestinationResolver() {
-		return new DynamicDestinationResolver();
 	}
 
 	@Bean

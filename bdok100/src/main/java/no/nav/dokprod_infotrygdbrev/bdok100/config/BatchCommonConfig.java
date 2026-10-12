@@ -19,27 +19,19 @@ import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.configuration.support.MapJobRegistry;
-import org.springframework.batch.core.converter.DefaultJobParametersConverter;
-import org.springframework.batch.core.converter.JobParametersConverter;
-import org.springframework.batch.core.launch.JobOperator;
-import org.springframework.batch.core.launch.support.SimpleJobOperator;
-import org.springframework.batch.core.listener.ChunkListener;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
 import java.util.Arrays;
@@ -51,9 +43,6 @@ import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.INPUT_F
 import static no.nav.dokprod_infotrygdbrev.common.BDOKCommonBatchInputParameters.CLEAN_KEY;
 import static no.nav.dokprod_infotrygdbrev.common.BDOKCommonBatchInputParameters.SKIP_CLEAN_KEY;
 
-/**
- * Common Spring configuration for all BDOK batches
- */
 @Configuration
 @Import({ConsumerConfig.class, Bdok100Config.class})
 @EnableAsync
@@ -128,35 +117,6 @@ public class BatchCommonConfig implements AsyncConfigurer {
 		serializer.addConverter(new LocalDateTimeConverter());
 		serializer.addConverter(new LocalDateConverter());
 		return serializer;
-	}
-
-	@Bean
-	public JdbcTemplate jdbcTemplate(DataSource dataSource) {
-		return new JdbcTemplate(dataSource);
-	}
-
-	@Bean
-	public ChunkListener<Object, Object> maxFailureChunkListener() {
-		return new MaxFailuresChunkListener();
-	}
-
-	@Bean
-	public TransactionTemplate transactionTemplate(PlatformTransactionManager platformTransactionManager) {
-		return new TransactionTemplate(platformTransactionManager);
-	}
-
-	@Bean
-	public JobParametersConverter jobParametersConverter() {
-		return new DefaultJobParametersConverter();
-	}
-
-	@Bean
-	public JobOperator jobOperator(JobRegistry jobRegistry,
-								   JobRepository jobRepository) {
-		SimpleJobOperator simpleJobOperator = new SimpleJobOperator();
-		simpleJobOperator.setJobRegistry(jobRegistry);
-		simpleJobOperator.setJobRepository(jobRepository);
-		return simpleJobOperator;
 	}
 
 	@Bean

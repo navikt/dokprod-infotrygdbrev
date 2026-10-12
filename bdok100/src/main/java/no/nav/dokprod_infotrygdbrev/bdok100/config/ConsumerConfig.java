@@ -20,12 +20,8 @@ import org.springframework.web.client.RestClient;
 
 import static org.apache.hc.core5.util.Timeout.ofSeconds;
 
-/**
- * Spring configuration for the consumer layer
- */
 @Configuration
-@Import({LokalCacheConfig.class,
-		NaisTexasConsumer.class,
+@Import({NaisTexasConsumer.class,
         PdlGraphQLConsumer.class,
         SakRestConsumer.class,
         SakService.class})
@@ -40,11 +36,6 @@ public class ConsumerConfig {
 			.build();
 	}
 
-	/**
-	 * Explicit {@link RestClient.Builder} bean: not provided by Spring Boot's
-	 * {@code RestClientAutoConfiguration} here, since {@code BatchTestConfig} bypasses
-	 * auto-configuration (explicit {@code classes} in {@code @SpringBootTest}).
-	 */
 	@Bean
 	RestClient.Builder restClientBuilder(ClientHttpRequestFactory clientHttpRequestFactory) {
 		return RestClient.builder().requestFactory(clientHttpRequestFactory);
