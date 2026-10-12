@@ -54,6 +54,7 @@
 		<byte-buddy.version>1.12.10</byte-buddy.version>
 
 		<hypersistence-utils.version>3.16.0</hypersistence-utils.version>
+		<ibm-mq-jakarta-client.version>10.0.0.5</ibm-mq-jakarta-client.version>
 		<jackson-module-jakarta-xmlbind-annotation.version>3.2.3</jackson-module-jakarta-xmlbind-annotation.version>
 		<jboss-jms-api_2.0_spec.version>2.0.0.Final</jboss-jms-api_2.0_spec.version>
 		<jboss-servlet-api_4.0_spec.version>2.0.0.Final</jboss-servlet-api_4.0_spec.version>
@@ -143,6 +144,11 @@
 				<groupId>io.hypersistence</groupId>
 				<artifactId>hypersistence-utils-hibernate-73</artifactId>
 				<version>${hypersistence-utils.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ibm.mq</groupId>
+				<artifactId>com.ibm.mq.jakarta.client</artifactId>
+				<version>${ibm-mq-jakarta-client.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>tools.jackson.module</groupId>
