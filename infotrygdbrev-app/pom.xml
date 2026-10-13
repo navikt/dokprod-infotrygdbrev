@@ -58,6 +58,10 @@
 			<groupId>tools.jackson.module</groupId>
 			<artifactId>jackson-module-jakarta-xmlbind-annotations</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>net.logstash.logback</groupId>
+			<artifactId>logstash-logback-encoder</artifactId>
+		</dependency>
 	</dependencies>
 
     <build>

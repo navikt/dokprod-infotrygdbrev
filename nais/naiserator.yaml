@@ -42,11 +42,11 @@ spec:
     - name: DOKPROD_INFOTRYGDBREV_QDOK001_QUEUENAME
       value: {{ DOKPROD_INFOTRYGDBREV_QDOK001_QUEUENAME }}
     - name: SPRING_DATASOURCE_URL
-      value: "$(NAIS_DATABASE_JDBC_URL)"
+      value: {{ NAIS_DATABASE_JDBC_URL }}
     - name: SPRING_DATASOURCE_USERNAME
-      value: "$(NAIS_DATABASE_USERNAME)"
+      value: {{ NAIS_DATABASE_USERNAME }}
     - name: SPRING_DATASOURCE_PASSWORD
-      value: "$(NAIS_DATABASE_PASSWORD)"
+      value: {{ NAIS_DATABASE_PASSWORD }}
     - name: OTEL_RESOURCE_ATTRIBUTES
       value: "deployment.environment.name={{ ENVIRONMENT }}"
     - name: SFTP_PRIVATE_KEY_FILE
