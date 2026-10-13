@@ -33,7 +33,6 @@
 		<argLine>-Dfile.encoding=UTF-8</argLine>
 		<spring.version>5.3.39</spring.version>
 
-		<caffeine.version>2.8.8</caffeine.version>
 		<commons-io.version>2.17.0</commons-io.version>
 		<commons-lang3.version>3.21.0</commons-lang3.version>
 		<jaxb.version>2.3.1</jaxb.version>
@@ -55,7 +54,6 @@
 
 		<hypersistence-utils.version>3.16.0</hypersistence-utils.version>
 		<ibm-mq-jakarta-client.version>10.0.0.5</ibm-mq-jakarta-client.version>
-		<jackson-module-jakarta-xmlbind-annotation.version>3.2.3</jackson-module-jakarta-xmlbind-annotation.version>
 		<jboss-jms-api_2.0_spec.version>2.0.0.Final</jboss-jms-api_2.0_spec.version>
 		<jboss-servlet-api_4.0_spec.version>2.0.0.Final</jboss-servlet-api_4.0_spec.version>
 		<jboss-annotations-api_1.3_spec.version>2.0.1.Final</jboss-annotations-api_1.3_spec.version>
@@ -132,11 +130,6 @@
 				<version>${byte-buddy.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.github.ben-manes.caffeine</groupId>
-				<artifactId>caffeine</artifactId>
-				<version>${caffeine.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>commons-io</groupId>
 				<artifactId>commons-io</artifactId>
 				<version>${commons-io.version}</version>
@@ -155,11 +148,6 @@
 				<groupId>net.logstash.logback</groupId>
 				<artifactId>logstash-logback-encoder</artifactId>
 				<version>${logstash-logback-encoder.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>tools.jackson.module</groupId>
-				<artifactId>jackson-module-jakarta-xmlbind-annotations</artifactId>
-				<version>${jackson-module-jakarta-xmlbind-annotation.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>no.difi.vefa</groupId>
@@ -234,15 +222,6 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<!-- Logging dependecies -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-		</dependency>
 		<!-- Test dependencies -->
 		<dependency>
 			<groupId>junit</groupId>

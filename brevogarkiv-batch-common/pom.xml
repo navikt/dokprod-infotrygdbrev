@@ -10,8 +10,6 @@
 
 	<groupId>no.nav.brevogarkiv</groupId>
 	<artifactId>brevogarkiv-batch-common</artifactId>
-	<!-- <packaging>jar</packaging>
-	<version>1.0-SNAPSHOT</version> -->
 
 	<dependencies>
 		<dependency>
@@ -35,10 +33,6 @@
 					<artifactId>commons-logging</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-tx</artifactId>
 		</dependency>
 
 		<!-- rest -->
