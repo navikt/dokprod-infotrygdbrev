@@ -3,6 +3,7 @@ package no.nav.dokprod_infotrygdbrev.config;
 import com.ibm.mq.jakarta.jms.MQConnectionFactory;
 import com.ibm.mq.jakarta.jms.MQQueue;
 import com.ibm.msg.client.jakarta.wmq.WMQConstants;
+import no.nav.dokprod_infotrygdbrev.bdok100.config.DokprodInfotrygdbrevProperties;
 import no.nav.dokprod_infotrygdbrev.util.MDCMessageConverter;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -14,7 +15,6 @@ import jakarta.jms.JMSException;
 import jakarta.jms.Queue;
 
 @Configuration
-@EnableConfigurationProperties(JmsProperties.class)
 public class JmsProviderConfig {
 
 	@Bean
@@ -33,18 +33,18 @@ public class JmsProviderConfig {
 	}
 
 	@Bean
-	public ConnectionFactory connectionFactory(JmsProperties properties) throws JMSException {
+	public ConnectionFactory connectionFactory(DokprodInfotrygdbrevProperties dokprodInfotrygdbrevProperties) throws JMSException {
 		MQConnectionFactory connectionFactory = new MQConnectionFactory();
-		connectionFactory.setHostName(properties.hostname());
-		connectionFactory.setPort(properties.port());
-		connectionFactory.setQueueManager(properties.queueManager());
-		connectionFactory.setChannel(properties.channel());
+		connectionFactory.setHostName(dokprodInfotrygdbrevProperties.qdok001().hostname());
+		connectionFactory.setPort(dokprodInfotrygdbrevProperties.qdok001().port());
+		connectionFactory.setQueueManager(dokprodInfotrygdbrevProperties.qdok001().queueManager());
+		connectionFactory.setChannel(dokprodInfotrygdbrevProperties.qdok001().channel());
 		connectionFactory.setTransportType(WMQConstants.WMQ_CM_CLIENT);
 		return connectionFactory;
 	}
 
 	@Bean
-	public Queue qdok001ProduserDokument(JmsProperties properties) throws JMSException {
-		return new MQQueue(properties.queueName());
+	public Queue qdok001ProduserDokument(DokprodInfotrygdbrevProperties dokprodInfotrygdbrevProperties) throws JMSException {
+		return new MQQueue(dokprodInfotrygdbrevProperties.qdok001().queueName());
 	}
 }

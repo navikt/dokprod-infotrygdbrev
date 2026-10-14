@@ -24,23 +24,23 @@ spec:
               -XX:MaxRAMPercentage=75
               $(JAVA_TRUSTSTORE_OPTIONS)"
     - name: DOKPROD_INFOTRYGDBREV_ENDPOINTS_PDL_URL
-      value: {{ DOKPROD_INFOTRYGDBREV_ENDPOINTS_PDL_URL }}
+      value: {{ ENDPOINTS_PDL_URL }}
     - name: DOKPROD_INFOTRYGDBREV_ENDPOINTS_PDL_SCOPE
-      value: {{ DOKPROD_INFOTRYGDBREV_ENDPOINTS_PDL_SCOPE }}
+      value: {{ ENDPOINTS_PDL_SCOPE }}
     - name: DOKPROD_INFOTRYGDBREV_ENDPOINTS_SAK_URL
-      value: {{ DOKPROD_INFOTRYGDBREV_ENDPOINTS_SAK_URL }}
+      value: {{ ENDPOINTS_SAK_URL }}
     - name: DOKPROD_INFOTRYGDBREV_ENDPOINTS_SAK_SCOPE
-      value: {{ DOKPROD_INFOTRYGDBREV_ENDPOINTS_SAK_SCOPE }}
-    - name: MQGATEWAY01_HOSTNAME
-      value: {{ MQGATEWAY01_HOSTNAME }}
-    - name: MQGATEWAY01_PORT
-      value: "{{ MQGATEWAY01_PORT }}"
-    - name: MQGATEWAY01_NAME
-      value: {{ MQGATEWAY01_NAME }}
-    - name: MQGATEWAY01_CHANNEL_SECURENAME
-      value: {{ MQGATEWAY01_CHANNEL_SECURENAME }}
+      value: {{ ENDPOINTS_SAK_SCOPE }}
+    - name: DOKPROD_INFOTRYGDBREV_QDOK001_HOSTNAME
+      value: {{ QDOK001_HOSTNAME }}
+    - name: DOKPROD_INFOTRYGDBREV_QDOK001_PORT
+      value: "{{ QDOK001_PORT }}"
+    - name: DOKPROD_INFOTRYGDBREV_QDOK001_QUEUE_MANAGER
+      value: {{ QDOK001_QUEUE_MANAGER }}
+    - name: DOKPROD_INFOTRYGDBREV_QDOK001_CHANNEL
+      value: {{ QDOK001_CHANNEL_SECURENAME }}
     - name: DOKPROD_INFOTRYGDBREV_QDOK001_QUEUENAME
-      value: {{ DOKPROD_INFOTRYGDBREV_QDOK001_QUEUENAME }}
+      value: {{ QDOK001_QUEUENAME }}
     - name: SPRING_DATASOURCE_URL
       value: {{ NAIS_DATABASE_JDBC_URL }}
     - name: SPRING_DATASOURCE_USERNAME
@@ -93,9 +93,9 @@ spec:
   accessPolicy:
     outbound:
       external:
-        - host: {{ MQGATEWAY01_HOSTNAME }}
+        - host: {{ QDOK001_HOSTNAME }}
           ports:
-            - port: {{ MQGATEWAY01_PORT }}
+            - port: {{ QDOK001_PORT }}
   azure:
     application:
       enabled: true

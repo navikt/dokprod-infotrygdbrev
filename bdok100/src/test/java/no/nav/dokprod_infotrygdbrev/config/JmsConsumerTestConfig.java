@@ -2,6 +2,7 @@ package no.nav.dokprod_infotrygdbrev.config;
 
 import no.nav.dok.meldinger.virksomhet.dokumentproduksjon.ProduserIkkeRedigerbartDokument;
 import no.nav.dokprod.batch.bdok100.brevdata44.xml.jaxb2.gen.Brevdata;
+import no.nav.dokprod_infotrygdbrev.bdok100.config.DokprodInfotrygdbrevProperties;
 import no.nav.dokprod_infotrygdbrev.jms.TestQueue;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -38,7 +39,7 @@ public class JmsConsumerTestConfig {
 	}
 
 	@Bean
-	public Queue qdok001ProduserDokument(@Value("${qdok001ProduserDokument}") String queuename) {
-		return new TestQueue(queuename);
+	public Queue qdok001ProduserDokument(DokprodInfotrygdbrevProperties dokprodInfotrygdbrevProperties) {
+		return new TestQueue(dokprodInfotrygdbrevProperties.qdok001().queueName());
 	}
 }
