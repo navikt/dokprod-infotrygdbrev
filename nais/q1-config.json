@@ -9,6 +9,8 @@
   "ENDPOINTS_PDL_SCOPE": "api://dev-fss.pdl.pdl-api-q1/.default",
   "ENDPOINTS_SAK_URL":"http://sak-q1.teamdokumenthandtering.svc.nais.local",
   "ENDPOINTS_SAK_SCOPE": "api://dev-fss.teamdokumenthandtering.sak-q1/.default",
+  "SFTP_HOST": "filmottak.preprod.local",
+  "SFTP_PORT": "22",
   "QDOK001_CHANNEL_SECURENAME": "Q1_DOKPRODBATCH_SSL",
   "QDOK001_HOSTNAME": "mqls01.preprod.local",
   "QDOK001_PORT": "1413",
