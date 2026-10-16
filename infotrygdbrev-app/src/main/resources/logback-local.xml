@@ -7,7 +7,7 @@
 		<appender-ref ref="CONSOLE"/>
 	</root>
 
-	<logger name="no.nav.dokdistsentralprint" level="INFO" additivity="false">
+	<logger name="no.nav.dokprod_infotrygdbrev" level="INFO" additivity="false">
 		<appender-ref ref="CONSOLE"/>
 	</logger>
 

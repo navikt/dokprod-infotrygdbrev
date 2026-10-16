@@ -28,6 +28,7 @@
 		<argLine>-Dfile.encoding=UTF-8</argLine>
 
 		<dokprod-melding-virksomhet-qdok001.version>45-26485e1</dokprod-melding-virksomhet-qdok001.version>
+		<dok-common.version>1.6.0</dok-common.version>
 
 		<hisrc-jaxb.version>3.0.0</hisrc-jaxb.version>
 		<logstash-logback-encoder.version>9.0</logstash-logback-encoder.version>
@@ -95,6 +96,17 @@
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcpkix-jdk18on</artifactId>
 				<version>${bouncycastle.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>no.nav.tjenester</groupId>
+				<artifactId>dok-melding-virksomhet-dokumentproduksjon</artifactId>
+				<version>${dokprod-melding-virksomhet-qdok001.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>no.nav.dok-common</groupId>
+				<artifactId>util</artifactId>
+				<version>${dok-common.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

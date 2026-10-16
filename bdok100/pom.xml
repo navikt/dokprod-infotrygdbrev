@@ -46,8 +46,12 @@
 		<dependency>
 			<groupId>no.nav.tjenester</groupId>
 			<artifactId>dok-melding-virksomhet-dokumentproduksjon</artifactId>
-			<version>${dokprod-melding-virksomhet-qdok001.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>no.nav.dok-common</groupId>
+			<artifactId>util</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>com.thoughtworks.xstream</groupId>
 			<artifactId>xstream</artifactId>
