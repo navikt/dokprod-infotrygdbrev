@@ -18,10 +18,6 @@ import org.springframework.batch.test.MetaDataInstanceFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
-/**
- * Unit tests for InputDirectoryValidationTasklet
- *
- */
 public class InputDirectoryValidationTaskletTest {
 
 	private InputDirectoryValidationTasklet inputDirectoryValidationTasklet;
@@ -36,7 +32,6 @@ public class InputDirectoryValidationTaskletTest {
 
 	@Before
 	public void setUp() throws IOException {
-		inputDirectoryValidationTasklet = new InputDirectoryValidationTasklet();
 		stepExecution = createStepExecution();
 	}
 
@@ -44,7 +39,7 @@ public class InputDirectoryValidationTaskletTest {
 	public void shouldValidateInputFileLocation() throws Exception {
 		temporaryFolder.newFile("test.xml");
 		Resource resource = new FileSystemResource(temporaryFolder.getRoot());
-		inputDirectoryValidationTasklet.setInputFileLocation(resource);
+		inputDirectoryValidationTasklet = new InputDirectoryValidationTasklet(resource);
 		inputDirectoryValidationTasklet.afterPropertiesSet();
 
 		inputDirectoryValidationTasklet.execute(stepContribution(), chunkContext());
@@ -56,7 +51,7 @@ public class InputDirectoryValidationTaskletTest {
 		thrown.expectMessage("inputFileLocation must exist");
 
 		Resource resource = new FileSystemResource(new File(temporaryFolder.getRoot(), "doesnotexist"));
-		inputDirectoryValidationTasklet.setInputFileLocation(resource);
+		inputDirectoryValidationTasklet = new InputDirectoryValidationTasklet(resource);
 		inputDirectoryValidationTasklet.afterPropertiesSet();
 	}
 
@@ -66,7 +61,7 @@ public class InputDirectoryValidationTaskletTest {
 		thrown.expectMessage("inputFileLocation must be a directory");
 
 		Resource resource = new FileSystemResource(temporaryFolder.newFile("notdirectory.xml"));
-		inputDirectoryValidationTasklet.setInputFileLocation(resource);
+		inputDirectoryValidationTasklet = new InputDirectoryValidationTasklet(resource);
 		inputDirectoryValidationTasklet.afterPropertiesSet();
 	}
 
@@ -78,7 +73,7 @@ public class InputDirectoryValidationTaskletTest {
 		notreadabledir.mkdir();
 		Resource resource = new FileSystemResource(notreadabledir);
 
-		inputDirectoryValidationTasklet.setInputFileLocation(resource);
+		inputDirectoryValidationTasklet = new InputDirectoryValidationTasklet(resource);
 		inputDirectoryValidationTasklet.afterPropertiesSet();
 	}
 

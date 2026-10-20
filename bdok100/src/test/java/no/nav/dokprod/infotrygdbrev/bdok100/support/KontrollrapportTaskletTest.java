@@ -31,6 +31,7 @@ import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Map;
 
 /**
@@ -64,7 +65,8 @@ public class KontrollrapportTaskletTest {
 	public void setUp() throws IOException {
 		Map<String, Object> map = Maps.newHashMap();
 		outputFolder = folder.newFolder();
-		map.put(OUTPUT_FILE_LOCATION_KEY, outputFolder.getAbsolutePath());
+		Path absolutePath = Path.of(outputFolder.getAbsolutePath());
+		map.put(OUTPUT_FILE_LOCATION_KEY, absolutePath);
 		LocalDateTime date = LocalDateTime.parse(DATE_STRING, format);
 		map.put(CommonBatchInputParameters.START_TIME_KEY, date.toDate());
 

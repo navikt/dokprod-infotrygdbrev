@@ -14,6 +14,12 @@ public class MaxFailuresChunkListener implements ChunkListener<Object, Object> {
 
 	private static final String EXCEPTION_MESSAGE_FORMAT = "Number of failures (%d) reached the maxFailures (%d) threshold.";
 
+	private int maxFailures;
+
+	public MaxFailuresChunkListener(int maxFailures) {
+		this.maxFailures = maxFailures;
+	}
+
 	@Override
 	public void beforeChunk(ChunkContext context) {
 
@@ -22,7 +28,6 @@ public class MaxFailuresChunkListener implements ChunkListener<Object, Object> {
 	@Override
 	public void afterChunk(ChunkContext context) {
 		Map<String, Object> jobExecutionContext = context.getStepContext().getJobExecutionContext();
-		Long maxFailures = (Long) jobExecutionContext.get(CommonBatchInputParameters.MAX_FAILURES);
 
 		if (jobExecutionContext.get(NO_OF_FAILURES_KEY) == null) {
 			jobExecutionContext.put(NO_OF_FAILURES_KEY, 0L);
@@ -39,6 +44,10 @@ public class MaxFailuresChunkListener implements ChunkListener<Object, Object> {
 
 	private boolean isThresholdReached(long numberOfFailures, long maxFailures) {
 		return numberOfFailures >= maxFailures;
+	}
+
+	public void setMaxFailures(int maxFailures) {
+		this.maxFailures = maxFailures;
 	}
 
 	@Override

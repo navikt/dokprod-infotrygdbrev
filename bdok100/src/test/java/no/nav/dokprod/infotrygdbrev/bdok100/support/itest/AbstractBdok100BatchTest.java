@@ -1,6 +1,5 @@
 package no.nav.dokprod.infotrygdbrev.bdok100.support.itest;
 
-import static no.nav.dokprod.infotrygdbrev.bdok100.Bdok100Constants.STATIC_INPUT_FILE_LOCATION_KEY;
 import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.JOURNALDATA_CSV;
 import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.LINJEDATA_TXT;
 
@@ -9,16 +8,16 @@ import no.nav.brevogarkiv.batch.common.BatchCounter;
 import no.nav.brevogarkiv.batch.common.CommonBatchInputParameters;
 import no.nav.brevogarkiv.batch.common.CounterEvent;
 import no.nav.brevogarkiv.batch.common.EventCounter;
+import no.nav.brevogarkiv.batch.common.MaxFailuresChunkListener;
+import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.Bdok100BatchParameters;
 import no.nav.dokprod.infotrygdbrev.bdok100.repo.Bdok100Repo;
 import no.nav.dokprod.infotrygdbrev.bdok100.support.to.NAVKontors;
 import no.nav.dokprod.infotrygdbrev.common.AbstractSpringBatchTest;
+import no.nav.dokprod.infotrygdbrev.config.Bdok100TestWorkspace;
 import no.nav.dokprod.infotrygdbrev.util.MDCOperations;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.TemporaryFolder;
 import org.slf4j.MDC;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.parameters.JobParameters;
@@ -32,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.jms.JMSException;
 import jakarta.jms.QueueBrowser;
 import jakarta.jms.Session;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -53,9 +53,6 @@ public abstract class AbstractBdok100BatchTest extends AbstractSpringBatchTest {
 	public static final String LINJEDATA_CRLF_TXT = "linjedata.crlf.txt";
 	public static final String STATIC_FOLDER = "static";
 
-	protected Path tmpInputFileFolder;
-	protected Path tmpOutFileFolder;
-
 	@Autowired
 	protected Bdok100Repo bdok100Repo;
 
@@ -67,9 +64,12 @@ public abstract class AbstractBdok100BatchTest extends AbstractSpringBatchTest {
 
 	@Autowired
 	protected JmsTemplate jmsBdok100Template;
-
-	@Rule
-	public TemporaryFolder temporaryFolder = new TemporaryFolder();
+	@Autowired
+	protected Bdok100BatchParameters bdok100BatchParameters;
+	@Autowired
+	protected Bdok100TestWorkspace workspace;
+	@Autowired
+	protected MaxFailuresChunkListener maxFailuresChunkListener;
 
 	@Override
 	@Autowired
@@ -84,7 +84,8 @@ public abstract class AbstractBdok100BatchTest extends AbstractSpringBatchTest {
 		MDC.put(MDCOperations.MDC_USER_ID, "itestuser");
 		MDC.put(MDCOperations.MDC_CONSUMER_ID, "itestconsumer");
 
-		setUpDirectories();
+		workspace.reset();
+		maxFailuresChunkListener.setMaxFailures(bdok100BatchParameters.maxFailures());
 		bdok100BatchCounter.resetCounter();
 		kontors.clear();
 	}
@@ -103,29 +104,20 @@ public abstract class AbstractBdok100BatchTest extends AbstractSpringBatchTest {
 		copyFolderFromInputSourceFolderToInputFileFolder(STATIC_FOLDER);
 	}
 
-	private void setUpDirectories() throws IOException {
-		tmpInputFileFolder = temporaryFolder.newFolder("input").toPath();
-		tmpOutFileFolder = temporaryFolder.newFolder("output").toPath();
-	}
-
-	public Path getTmpInputFileFolder() {
-		return tmpInputFileFolder;
-	}
-
 	protected void copyFolderFromInputSourceFolderToInputFileFolder(String foldername) throws IOException {
 		FileUtils.copyDirectoryToDirectory(Paths.get(getInputFileFolderSource().getAbsolutePath(), foldername).toFile(),
-				tmpInputFileFolder.toFile());
+				workspace.input().toFile());
 	}
 
 	protected void copyFileFromInputSourceFolderToInputFileFolder(String filename) throws IOException {
 		FileUtils.copyFileToDirectory(Paths.get(getInputFileFolderSource().getAbsolutePath(), filename).toFile(),
-				tmpInputFileFolder.toFile());
+				workspace.input().toFile());
 	}
 
 	protected void copyFileFromInputSourceFolderToInputFileFolder(String filename, String targetFilename) throws IOException {
 		FileUtils.copyFileToDirectory(Paths.get(getInputFileFolderSource().getAbsolutePath(), filename).toFile(),
-				tmpInputFileFolder.toFile());
-		Path file = tmpInputFileFolder.resolve(filename);
+				workspace.input().toFile());
+		Path file = workspace.input().resolve(filename);
 		Path target = file.resolveSibling(targetFilename);
 		if (Files.exists(target)) {
 			Files.delete(target);
@@ -140,7 +132,7 @@ public abstract class AbstractBdok100BatchTest extends AbstractSpringBatchTest {
 
 	@SneakyThrows
 	protected String getOutputFileAsString(String filename, Charset charset) {
-		return new String(Files.readAllBytes(Paths.get(tmpOutFileFolder.toString(), filename)), charset);
+		return new String(Files.readAllBytes(workspace.output().resolve(filename)), charset);
 	}
 
 	protected Map<CounterEvent, ? extends EventCounter> getEventReport() {
@@ -158,8 +150,7 @@ public abstract class AbstractBdok100BatchTest extends AbstractSpringBatchTest {
 	}
 
 	protected JobParameters getDefaultBdok100JobParameters() {
-		return parameterBuilder()
-				.toJobParameters();
+		return parameterBuilder().toJobParameters();
 	}
 
 	@SuppressWarnings({ "unchecked"})
@@ -177,16 +168,7 @@ public abstract class AbstractBdok100BatchTest extends AbstractSpringBatchTest {
 
 	@SneakyThrows
 	protected JobParametersBuilder parameterBuilder() {
-		Path behandlet = tmpOutFileFolder.resolveSibling("behandlet");
-		Path failed = tmpOutFileFolder.resolveSibling("failed");
-		Files.createDirectory(behandlet);
-		Files.createDirectory(failed);
 		return getDefaultCommonJobParametersBuilder()
-				.addString(CommonBatchInputParameters.INPUT_FILE_LOCATION_KEY, FilenameUtils.separatorsToUnix(tmpInputFileFolder.toString()))
-				.addString(STATIC_INPUT_FILE_LOCATION_KEY, FilenameUtils.separatorsToUnix(tmpInputFileFolder.resolve("static").toString()))
-				.addString(CommonBatchInputParameters.OUTPUT_FILE_LOCATION_KEY, FilenameUtils.separatorsToUnix(tmpOutFileFolder.toString()))
-				.addString(CommonBatchInputParameters.BEHANDLET_FILE_LOCATION_KEY, FilenameUtils.separatorsToUnix(behandlet.toString()))
-				.addString(CommonBatchInputParameters.FAILED_FILE_LOCATION_KEY, FilenameUtils.separatorsToUnix(failed.toString()))
 				.addString(CommonBatchInputParameters.MAX_FAILURES, "10");
 	}
 }

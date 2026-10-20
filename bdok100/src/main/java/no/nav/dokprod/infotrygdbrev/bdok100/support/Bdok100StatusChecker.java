@@ -10,10 +10,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-/**
- * Checks status for batchrun
- *
- */
 @Slf4j
 public class Bdok100StatusChecker implements StatusChecker {
 
@@ -23,7 +19,8 @@ public class Bdok100StatusChecker implements StatusChecker {
 	public boolean isWarning(JobExecution jobExecution) {
 		boolean warningDuringRun = (boolean) jobExecution.getExecutionContext().get(IS_WARNING_EXIT);
 		boolean behandletNone = jobExecution.getExecutionContext().getLong(BEHANDLET_COUNT) == 0L;
-		boolean executionWasCleanOnly = BooleanUtils.isTrue((Boolean) jobExecution.getExecutionContext().get(CLEAN_KEY));
+		boolean executionWasCleanOnly = BooleanUtils.toBoolean(
+				jobExecution.getJobParameters().getString(CLEAN_KEY, "false"));
 
 		boolean behandletNoneWarning = !executionWasCleanOnly && behandletNone;
 		if (behandletNoneWarning && !warningDuringRun) {

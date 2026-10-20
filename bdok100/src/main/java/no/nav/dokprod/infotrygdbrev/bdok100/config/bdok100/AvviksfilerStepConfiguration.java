@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -28,9 +27,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.OUTPUT_FILE_LOCATION_KEY;
 import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.START_TIME_KEY;
-import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.WORK_UNIT_KEY;
 import static no.nav.dokprod.infotrygdbrev.bdok100.Bdok100Constants.CRLF;
 import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.getJFFAvvikFilename;
 import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.getLPFAvvikFilename;
@@ -63,9 +60,8 @@ public class AvviksfilerStepConfiguration extends AbstractBdok100StepConfig {
 	@StepScope
 	@Bean(destroyMethod = "")
 	public JpaCursorItemReader<Bdok100ArbTbl> avviksfilerReader(
-			EntityManagerFactory entityManager,
-			@Value("#{jobParameters[" + WORK_UNIT_KEY + "]}") Integer workUnit) {
-		return createArbTblReaderForStatus(KAN_IKKE_BEHANDLES, workUnit, entityManager);
+			EntityManagerFactory entityManager) {
+		return createArbTblReaderForStatus(KAN_IKKE_BEHANDLES, entityManager);
 	}
 
 	@Bean
@@ -82,7 +78,7 @@ public class AvviksfilerStepConfiguration extends AbstractBdok100StepConfig {
 	@StepScope
 	@Bean(destroyMethod = "")
 	public FlatFileItemWriter<Bdok100ArbTbl> lineprintAvviksfilWriter(
-			@Value("file:#{jobParameters[" + OUTPUT_FILE_LOCATION_KEY + "]}") Resource outputLocation,
+			Bdok100BatchParameters bdok100BatchParameters,
 			@Value("#{jobExecutionContext[" + START_TIME_KEY + "]}") Date startTime) throws IOException {
 		FlatFileItemWriter<Bdok100ArbTbl> writer = new RemoveNullFlatFileItemWriter<>(new LineAggregator<Bdok100ArbTbl>() {
 			@Override
@@ -90,7 +86,7 @@ public class AvviksfilerStepConfiguration extends AbstractBdok100StepConfig {
 				return item.getLineprintBrev();
 			}
 		});
-		writer.setResource(new FileSystemResource(outputLocation.getFile().toPath().resolve(getLPFAvvikFilename(startTime)).toFile()));
+		writer.setResource(new FileSystemResource(bdok100BatchParameters.outputFileLocation().resolve(getLPFAvvikFilename(startTime)).toFile()));
 		writer.setLineSeparator(CRLF);
 		writer.setEncoding(Bdok100Constants.BDOK100_INPUT_CHARSET.toString());
 		return writer;
@@ -99,7 +95,7 @@ public class AvviksfilerStepConfiguration extends AbstractBdok100StepConfig {
 	@StepScope
 	@Bean(destroyMethod = "")
 	public FlatFileItemWriter<Bdok100ArbTbl> journalforingsfilAvviksfilWriter(
-			@Value("file:#{jobParameters[" + OUTPUT_FILE_LOCATION_KEY + "]}") Resource outputLocation,
+			Bdok100BatchParameters bdok100BatchParameters,
 			@Value("#{jobExecutionContext[" + START_TIME_KEY + "]}") Date startTime) throws IOException {
 
 		FlatFileItemWriter<Bdok100ArbTbl> writer = new RemoveNullFlatFileItemWriter<>(new LineAggregator<Bdok100ArbTbl>() {
@@ -108,7 +104,7 @@ public class AvviksfilerStepConfiguration extends AbstractBdok100StepConfig {
 				return item.getJournalforingsfil();
 			}
 		});
-		writer.setResource(new FileSystemResource(outputLocation.getFile().toPath().resolve(getJFFAvvikFilename(startTime)).toFile()));
+		writer.setResource(new FileSystemResource(bdok100BatchParameters.outputFileLocation().resolve(getJFFAvvikFilename(startTime)).toFile()));
 		writer.setLineSeparator(CRLF);
 		writer.setEncoding(Bdok100Constants.BDOK100_INPUT_CHARSET.toString());
 		return writer;
@@ -119,7 +115,6 @@ public class AvviksfilerStepConfiguration extends AbstractBdok100StepConfig {
 
 		RemoveNullFlatFileItemWriter(LineAggregator<T> aggregator) {
 			super(aggregator);
-			// setLineAggregator (aggregator);
 			this.aggregator = aggregator;
 		}
 

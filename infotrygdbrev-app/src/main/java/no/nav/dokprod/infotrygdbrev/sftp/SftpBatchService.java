@@ -35,6 +35,7 @@ public class SftpBatchService {
 		this.jobService = jobService;
 	}
 
+	/// **denne har kanskje ikke noe formål**
 	public List<String> listFiles() {
 		return Arrays.stream(remoteFileTemplate.list(sftpProperties.remoteDirectory()))
 				.filter(entry -> !entry.getAttributes().isDirectory())

@@ -2,7 +2,6 @@ package no.nav.dokprod.infotrygdbrev.bdok100.support.itest;
 
 import no.nav.brevogarkiv.batch.common.CommonBatchInputParameters;
 import no.nav.dokprod.infotrygdbrev.util.MDCOperations;
-import org.apache.commons.io.FilenameUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.slf4j.MDC;
@@ -12,7 +11,6 @@ import org.springframework.batch.core.job.flow.support.SimpleFlow;
 import org.springframework.batch.infrastructure.item.ExecutionContext;
 import org.springframework.batch.test.StepScopeTestExecutionListener;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.util.ReflectionUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +21,8 @@ import java.lang.reflect.Method;
  * Baste Step test for BDOK100
  *
  */
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,
-		StepScopeTestExecutionListener.class})
+@TestExecutionListeners(listeners = {StepScopeTestExecutionListener.class},
+	       mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
 public abstract class AbstractBdok100StepTest extends AbstractBdok100BatchTest {
 
 	@Autowired
@@ -71,8 +69,9 @@ public abstract class AbstractBdok100StepTest extends AbstractBdok100BatchTest {
 	protected ExecutionContext getJobExecutionContext() throws Exception {
 		ExecutionContext executionContext = getDefaultCommonJobExecutionContext();
 		executionContext.putLong(CommonBatchInputParameters.WORK_UNIT_KEY, 2L);
-		executionContext.putString(CommonBatchInputParameters.OUTPUT_FILE_LOCATION_KEY, FilenameUtils.separatorsToUnix(tmpOutFileFolder.toString()));
+		executionContext.put(CommonBatchInputParameters.OUTPUT_FILE_LOCATION_KEY, workspace.output());
 		executionContext.putLong(CommonBatchInputParameters.MAX_FAILURES, 2L);
+		maxFailuresChunkListener.setMaxFailures(2);
 
 		return executionContext;
 	}

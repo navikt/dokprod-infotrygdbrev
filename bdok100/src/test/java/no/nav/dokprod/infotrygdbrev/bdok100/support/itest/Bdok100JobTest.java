@@ -45,11 +45,8 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
-/**
- * Integration tests for the BDOK100 Job
- *
- */
 public class Bdok100JobTest extends AbstractBdok100BatchTest {
 	private static final String UUID_REGEX = "([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}){1}";
 
@@ -258,18 +255,18 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 
 		assertThat(jobExecution.getExitStatus(), is(NavExitStatus.WARNING));
 
-		assertThat(tmpOutFileFolder.toFile().list().length, is(4));
-		assertThat(tmpOutFileFolder.resolveSibling("failed").toFile().list().length, is(0));
+		assertThat(workspace.output().toFile().list().length, is(4));
+		assertThat(workspace.failed().toFile().list().length, is(0));
 		validateMessageInQueue();
 
 		// files in generated folder with timestamp in name
-		Path behandletFolder = tmpOutFileFolder.resolveSibling("behandlet");
+		Path behandletFolder = workspace.behandlet();
 		String[] behandlets = behandletFolder.toFile().list();
 		assertThat(behandlets.length, is(1));
 		assertThat(behandletFolder.resolve(behandlets[0]).toFile().list().length, is(2));
 
 		// contains "static" folder
-		assertThat(tmpInputFileFolder.toFile().list().length, is(1));
+		assertThat(workspace.input().toFile().list().length, is(1));
 
 		assertThat(bdok100Repo.countByStatus(FEILET_GSAK), is(0L));
 		assertThat(bdok100Repo.countByStatus(BEHANDLET), is(0L));
@@ -278,7 +275,7 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 
 	@Test
 	public void shouldExitErrorIfGsakFailures() throws Exception {
-		Files.delete(tmpInputFileFolder.resolve(JOURNALDATA_CSV));
+		Files.delete(workspace.input().resolve(JOURNALDATA_CSV));
 		copyFileFromInputSourceFolderToInputFileFolder("journaldata_failgsaktwice.csv", JOURNALDATA_CSV);
 		JobExecution jobExecution = launchJob(getDefaultBdok100JobParameters());
 
@@ -288,26 +285,27 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 
 	@Test
 	public void shouldMoveToFailedFolderOnFailureAndNotEmptyTableOfFailedEntries() throws Exception {
-		Files.delete(tmpInputFileFolder.resolve(JOURNALDATA_CSV));
+		Files.delete(workspace.input().resolve(JOURNALDATA_CSV));
 		copyFileFromInputSourceFolderToInputFileFolder("journaldata_failgsaktwice.csv", JOURNALDATA_CSV);
-		JobParameters parameters = parameterBuilder().addString(CommonBatchInputParameters.MAX_FAILURES, "1").toJobParameters();
+		maxFailuresChunkListener.setMaxFailures(1);
+		JobParameters parameters = getDefaultBdok100JobParameters();
 		JobExecution jobExecution = launchJob(parameters);
 
 		assertThat(jobExecution.getExitStatus().getExitCode(), is(ExitStatus.FAILED.getExitCode()));
 		assertThat(bdok100Repo.countByStatus(FEILET_GSAK), is(2L));
 
-		assertThat(tmpOutFileFolder.toFile().list().length, is(0));
-		assertThat(tmpOutFileFolder.resolveSibling("behandlet").toFile().list().length, is(0));
+		assertThat(workspace.output().toFile().list().length, is(0));
+		assertThat(workspace.behandlet().toFile().list().length, is(0));
 		validateMessageInQueue();
 
 		// files in generated folder with timestamp in name
-		Path failedFolder = tmpOutFileFolder.resolveSibling("failed");
+		Path failedFolder = workspace.failed();
 		String[] faileds = failedFolder.toFile().list();
 		assertThat(faileds.length, is(1));
 		assertThat(failedFolder.resolve(faileds[0]).toFile().list().length, is(2));
 
 		// contains "static" folder
-		assertThat(tmpInputFileFolder.toFile().list().length, is(1));
+		assertThat(workspace.input().toFile().list().length, is(1));
 	}
 
 	@Test
@@ -349,14 +347,15 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 
 		assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
 		assertThat(bdok100Repo.count(), is(0L));
-		assertThat(tmpOutFileFolder.toFile().list().length, is(0));
+		assertThat(workspace.output().toFile().list().length, is(0));
 	}
 
 	@Test
 	public void shouldRestartAndCompleteIfGsakReachedMaxFail() throws Exception {
-		Files.delete(tmpInputFileFolder.resolve(JOURNALDATA_CSV));
+		Files.delete(workspace.input().resolve(JOURNALDATA_CSV));
 		copyFileFromInputSourceFolderToInputFileFolder("journaldata_failgsaktwice.csv", JOURNALDATA_CSV);
-		JobParameters parameters = parameterBuilder().addString(CommonBatchInputParameters.MAX_FAILURES, "2").toJobParameters();
+		maxFailuresChunkListener.setMaxFailures(2);
+		JobParameters parameters = getDefaultBdok100JobParameters();
 		JobExecution jobExecution = launchJob(parameters);
 
 		assertThat(jobExecution.getExitStatus(), is(ExitStatus.FAILED));
@@ -368,10 +367,10 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 			}
 			bdok100Repo.save(bdok100ArbTbl);
 		}
-		Path failedFolder = tmpOutFileFolder.resolveSibling("failed");
+		Path failedFolder = workspace.failed();
 		failedFolder = failedFolder.resolve(failedFolder.toFile().list()[0]);
-		Files.move(failedFolder.resolve(JOURNALDATA_CSV), tmpInputFileFolder.resolve(JOURNALDATA_CSV));
-		Files.move(failedFolder.resolve(LINJEDATA_TXT), tmpInputFileFolder.resolve(LINJEDATA_TXT));
+		Files.move(failedFolder.resolve(JOURNALDATA_CSV), workspace.input().resolve(JOURNALDATA_CSV));
+		Files.move(failedFolder.resolve(LINJEDATA_TXT), workspace.input().resolve(LINJEDATA_TXT));
 
 		jobExecution = launchJob(parameters);
 		assertThat(jobExecution.getExitStatus(), is(NavExitStatus.WARNING));
@@ -381,7 +380,7 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 
 	@Test
 	public void shouldRestartAndCompleteIfGsakDidntReachMaxFail() throws Exception {
-		Files.delete(tmpInputFileFolder.resolve(JOURNALDATA_CSV));
+		Files.delete(workspace.input().resolve(JOURNALDATA_CSV));
 		copyFileFromInputSourceFolderToInputFileFolder("journaldata_failgsaktwice.csv", JOURNALDATA_CSV);
 		JobParameters parameters = getDefaultBdok100JobParameters();
 		JobExecution jobExecution = launchJob(parameters);
@@ -395,10 +394,10 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 			}
 			bdok100Repo.save(bdok100ArbTbl);
 		}
-		Path failedFolder = tmpOutFileFolder.resolveSibling("behandlet");
+		Path failedFolder = workspace.behandlet();
 		failedFolder = failedFolder.resolve(failedFolder.toFile().list()[0]);
-		Files.move(failedFolder.resolve(JOURNALDATA_CSV), tmpInputFileFolder.resolve(JOURNALDATA_CSV));
-		Files.move(failedFolder.resolve(LINJEDATA_TXT), tmpInputFileFolder.resolve(LINJEDATA_TXT));
+		Files.move(failedFolder.resolve(JOURNALDATA_CSV), workspace.input().resolve(JOURNALDATA_CSV));
+		Files.move(failedFolder.resolve(LINJEDATA_TXT), workspace.input().resolve(LINJEDATA_TXT));
 		Files.delete(failedFolder);
 
 		jobExecution = launchJob(parameters);
@@ -407,20 +406,20 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 		assertThat(bdok100Repo.countByStatus(FEILET_GSAK), is(0L));
 
 		// avvik_lpf, avvik_jff, avvikrapport, kontrollrapport_1, kontrollrapport_2, xml_1, xml_2
-		assertThat(tmpOutFileFolder.toFile().list().length, is(5));
+		assertThat(workspace.output().toFile().list().length, is(5));
 	}
 
 	@Test
 	public void shouldEndWarnIfEmptyInput() throws Exception {
-		Files.write(tmpInputFileFolder.resolve(JOURNALDATA_CSV), new byte[]{});
-		Files.write(tmpInputFileFolder.resolve(LINJEDATA_TXT), new byte[]{});
+		Files.write(workspace.input().resolve(JOURNALDATA_CSV), new byte[]{});
+		Files.write(workspace.input().resolve(LINJEDATA_TXT), new byte[]{});
 		JobExecution jobExecution = launchJob(getDefaultBdok100JobParameters());
 		assertThat(jobExecution.getExitStatus(), is(NavExitStatus.WARNING));
 	}
 
 	private Path findKontrollrapport(JobExecution jobExecution, boolean first) {
 		String kontrollrapportName = getKontrollrapport((Date) jobExecution.getExecutionContext().get(START_TIME_KEY));
-		ArrayList<String> files = Lists.newArrayList(tmpOutFileFolder.toFile().list());
+		ArrayList<String> files = Lists.newArrayList(workspace.output().toFile().list());
 		Collections.sort(files);
 		if (!first) {
 			Collections.reverse(files);
@@ -432,7 +431,7 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 				break;
 			}
 		}
-		return tmpOutFileFolder.resolve(kontrollrapportName);
+		return workspace.output().resolve(kontrollrapportName);
 	}
 
 	private void validateMessageInQueue() {

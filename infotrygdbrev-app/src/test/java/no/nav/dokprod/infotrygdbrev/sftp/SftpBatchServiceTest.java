@@ -34,7 +34,7 @@ public class SftpBatchServiceTest {
 		"known-hosts",
 		REMOTE_DIRECTORY,
 		Duration.ofSeconds(30)
-	));
+	), 2, 10);
 	private final SftpBatchService service = new SftpBatchService(remoteFileTemplate, properties, jobService);
 
 	@Test
