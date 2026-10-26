@@ -82,11 +82,16 @@ public class Bdok100Config {
 	private static final String START = CleanableOnlyEmptyDecider.START.getName();
 	private static final String CLEAN = CleanableOnlyEmptyDecider.CLEAN.getName();
 
-	public static final Path INPUT_FILE_LOCATION_VALUE =Path.of("inbound/input");
-	public static final Path STATIC_INPUT_FILE_LOCATION_VALUE = Path.of("inbound/static");
-	public static final Path OUTPUT_FILE_LOCATION_VALUE = Path.of("outbound/output");
-	public static final Path FAILED_FILE_LOCATION_VALUE = Path.of("outbound/failed");
-	public static final Path BEHANDLET_FILE_LOCATION_VALUE = Path.of("outbound/behandlet");
+	private static final Path WORK_DIRECTORY = Path.of(
+			System.getProperty("java.io.tmpdir"),
+			"dokprod-infotrygdbrev",
+			"bdok100");
+
+	public static final Path INPUT_FILE_LOCATION_VALUE = WORK_DIRECTORY.resolve("input");
+	public static final Path STATIC_INPUT_FILE_LOCATION_VALUE = WORK_DIRECTORY.resolve("static");
+	public static final Path OUTPUT_FILE_LOCATION_VALUE = WORK_DIRECTORY.resolve("output");
+	public static final Path FAILED_FILE_LOCATION_VALUE = WORK_DIRECTORY.resolve("failed");
+	public static final Path BEHANDLET_FILE_LOCATION_VALUE = WORK_DIRECTORY.resolve("behandlet");
 
 
 	@Bean

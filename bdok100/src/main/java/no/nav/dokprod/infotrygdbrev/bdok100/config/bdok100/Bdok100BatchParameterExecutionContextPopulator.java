@@ -14,19 +14,17 @@ import static no.nav.dokprod.infotrygdbrev.bdok100.Bdok100Constants.STATIC_INPUT
 public class Bdok100BatchParameterExecutionContextPopulator implements JobExecutionListener {
 
 	private final Bdok100BatchParameters bdok100BatchParameters;
-	private final Date startTime;
 
 	public Bdok100BatchParameterExecutionContextPopulator(Bdok100BatchParameters bdok100BatchParameters) {
 		this.bdok100BatchParameters = bdok100BatchParameters;
-		this.startTime = new Date();
 	}
 
 	@Override
 	public void beforeJob(final JobExecution jobExecution) {
-		putParametersOnContext(jobExecution.getExecutionContext());
+		putParametersOnContext(jobExecution.getExecutionContext(), new Date());
 	}
 
-	private void putParametersOnContext(ExecutionContext jobExecutionContext) {
+	private void putParametersOnContext(ExecutionContext jobExecutionContext, Date startTime) {
 		jobExecutionContext.put(CommonBatchInputParameters.INPUT_FILE_LOCATION_KEY, bdok100BatchParameters.inputFileLocation());
 		jobExecutionContext.put(STATIC_INPUT_FILE_LOCATION_KEY, bdok100BatchParameters.staticInputFileLocation());
 		jobExecutionContext.put(CommonBatchInputParameters.OUTPUT_FILE_LOCATION_KEY, bdok100BatchParameters.outputFileLocation());
