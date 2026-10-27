@@ -45,7 +45,7 @@ public class SftpBatchService {
 		this.batchParameters = batchParameters;
 	}
 
-	@Scheduled(cron = "${dokprod.infotrygdbrev.sftp.cron}")
+	@Scheduled(cron = "${dokprod.infotrygdbrev.batch.cron}")
 	public Optional<JobExecution> startBatchIfReady() throws JobExecutionException {
 		Set<String> remoteFiles = sftpFileService.listFiles();
 		if (!remoteFiles.contains(READY_FILE_NAME)) {
