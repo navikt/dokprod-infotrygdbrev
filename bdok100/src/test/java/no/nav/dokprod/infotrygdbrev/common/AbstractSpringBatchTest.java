@@ -21,14 +21,15 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.persistence.EntityManager;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicLong;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = {BatchTestConfig.class})
 @ActiveProfiles("itest")
 public abstract class AbstractSpringBatchTest extends JobLauncherTestUtils {
+
+	private static final AtomicLong NEXT_START_TIME = new AtomicLong(System.currentTimeMillis());
 
 	@Autowired
 	protected EntityManager entityManager;
@@ -58,25 +59,21 @@ public abstract class AbstractSpringBatchTest extends JobLauncherTestUtils {
 			entityManager.createQuery("delete from Bdok100ArbTbl").executeUpdate());
 	}
 
-	protected DateFormat startTimeFormat = new SimpleDateFormat("dd.MM.yyyy-HH:mm:ss:SS");
-
-	protected String getStartTime() {
-		return startTimeFormat.format(new Date());
+	protected Date getStartTime() {
+		return new Date(NEXT_START_TIME.addAndGet(1_000));
 	}
 
 	protected abstract String getWorkUnit();
 
 	protected abstract String getProgressInterval();
 
-	protected JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
-
 	protected JobParameters getDefaultCommonJobParameters() {
 		return getDefaultCommonJobParametersBuilder().toJobParameters();
 	}
 
 	protected JobParametersBuilder getDefaultCommonJobParametersBuilder() {
-		return jobParametersBuilder
-				.addString(CommonBatchInputParameters.START_TIME_KEY, getStartTime())
+		return new JobParametersBuilder()
+				.addDate(CommonBatchInputParameters.START_TIME_KEY, getStartTime())
 				.addString(CommonBatchInputParameters.WORK_UNIT_KEY, getWorkUnit())
 				.addString(CommonBatchInputParameters.PROGRESS_INTERVAL_KEY, getProgressInterval());
 	}

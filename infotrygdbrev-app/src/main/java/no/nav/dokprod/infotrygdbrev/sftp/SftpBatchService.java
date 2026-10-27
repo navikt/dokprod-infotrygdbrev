@@ -7,20 +7,26 @@ import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.JobExecutionException;
-import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
+import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.START_TIME_KEY;
 
 @Slf4j
 @Service
 public class SftpBatchService {
 
 	public static final String READY_FILE_NAME = "ready.txt";
+	private static final String STARTED_FILE_PREFIX = "started-";
+	private static final String MARKER_FILE_SUFFIX = ".txt";
 
 	private final SftpFileService sftpFileService;
 	private final SftpToLocalFileStagingService stagingService;
@@ -39,15 +45,38 @@ public class SftpBatchService {
 		this.batchParameters = batchParameters;
 	}
 
-	public synchronized Optional<JobExecution> startBatchIfReady(JobParameters jobParameters) throws JobExecutionException {
+	@Scheduled(cron = "${dokprod.infotrygdbrev.sftp.cron}")
+	public Optional<JobExecution> startBatchIfReady() throws JobExecutionException {
 		Set<String> remoteFiles = sftpFileService.listFiles();
 		if (!remoteFiles.contains(READY_FILE_NAME)) {
 			return Optional.empty();
 		}
+		var previousStartedMarker = remoteFiles.stream().filter(fileName -> fileName.startsWith(STARTED_FILE_PREFIX)).findAny();
+		if (previousStartedMarker.isPresent()) {
+			log.error("bdok100 aborted! A previous job has already claimed this round, marker: {}", previousStartedMarker.get());
+			return Optional.empty();
+		}
 
 		stageFiles(remoteFiles);
-		log.info("SFTP files are staged, starting BDOK100");
-		return Optional.of(jobService.start(jobParameters));
+		Date startTime = new Date();
+		String startedFileName = startedFileName(startTime);
+		sftpFileService.createEmptyFile(startedFileName);
+		log.info("bdok100 starting, files staged, claimed round with marker: {}", startedFileName);
+		JobExecution jobExecution = jobService.start(
+				new JobParametersBuilder()
+						.addDate(START_TIME_KEY, startTime)
+						.toJobParameters());
+		if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
+			sftpFileService.deleteFile(startedFileName);
+			log.info("bdok100 complete, removed marker {}", startedFileName);
+		} else {
+			log.error("bdok100 Something went wrong, batch status={}. Not removing batch-claiming marker: {}", jobExecution.getStatus(), startedFileName);
+		}
+		return Optional.of(jobExecution);
+	}
+
+	private String startedFileName(Date startTime) {
+		return STARTED_FILE_PREFIX + FilenameHelper.formatDateToSeconds(startTime) + MARKER_FILE_SUFFIX;
 	}
 
 	private void stageFiles(Set<String> remoteFiles) {
@@ -62,7 +91,7 @@ public class SftpBatchService {
 		stagingService.prepareLocalWorkspace();
 		filesToStage.forEach(stagingService::stageFile);
 
-		log.info("Staged {} SFTP files in local workspace {}", filesToStage.size(), batchParameters.inputFileLocation().getParent());
+		log.info("bdok100 Staged {} SFTP files in local workspace {}", filesToStage.size(), batchParameters.inputFileLocation().getParent());
 	}
 
 	private Map<String, Path> batchfilesToLocalPaths() {

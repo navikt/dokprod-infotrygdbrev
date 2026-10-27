@@ -6,25 +6,33 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.JobParameters;
 
 import java.nio.file.Path;
+import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 
+import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.START_TIME_KEY;
 import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.JOURNALDATA_CSV;
 import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.KONTOR_CSV;
 import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.LINJEDATA_TXT;
 import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.VEDLEGG_CSV;
+import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.formatDateToSeconds;
 import static no.nav.dokprod.infotrygdbrev.sftp.SftpBatchService.READY_FILE_NAME;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -58,20 +66,34 @@ public class SftpBatchServiceTest {
 	public void shouldNotStartBatchWhenReadyFileIsMissing() throws Exception {
 		when(sftpFileService.listFiles()).thenReturn(Set.of(JOURNALDATA_CSV));
 
-		Optional<JobExecution> execution = service.startBatchIfReady(new JobParameters());
+		Optional<JobExecution> execution = service.startBatchIfReady();
 
 		assertTrue(execution.isEmpty());
 		verifyNoInteractions(stagingService, jobService);
 	}
 
 	@Test
-	public void shouldStageFilesAndStartBatchWhenReadyFileExists() throws Exception {
-		JobParameters jobParameters = new JobParameters();
-		JobExecution expectedExecution = mock(JobExecution.class);
-		when(sftpFileService.listFiles()).thenReturn(requiredRemoteFiles());
-		when(jobService.start(jobParameters)).thenReturn(expectedExecution);
+	public void shouldNotStartBatchWhenStartedMarkerExists() throws Exception {
+		when(sftpFileService.listFiles()).thenReturn(Set.of(
+				READY_FILE_NAME,
+				"started-2026-10-27_14-30-00.txt"));
 
-		Optional<JobExecution> execution = service.startBatchIfReady(jobParameters);
+		Optional<JobExecution> execution = service.startBatchIfReady();
+
+		assertTrue(execution.isEmpty());
+		verifyNoInteractions(stagingService, jobService);
+		verify(sftpFileService, never()).createEmptyFile(any(String.class));
+	}
+
+	@Test
+	public void shouldStageFilesAndStartBatchWhenReadyFileExists() throws Exception {
+		JobExecution expectedExecution = mock(JobExecution.class);
+		ArgumentCaptor<JobParameters> jobParametersCaptor = ArgumentCaptor.forClass(JobParameters.class);
+		when(sftpFileService.listFiles()).thenReturn(requiredRemoteFiles());
+		when(jobService.start(any(JobParameters.class))).thenReturn(expectedExecution);
+		when(expectedExecution.getStatus()).thenReturn(BatchStatus.COMPLETED);
+
+		Optional<JobExecution> execution = service.startBatchIfReady();
 
 		assertEquals(Optional.of(expectedExecution), execution);
 		verify(stagingService).prepareLocalWorkspace();
@@ -79,7 +101,12 @@ public class SftpBatchServiceTest {
 		verify(stagingService).stageFile(LINJEDATA_TXT, batchParameters.inputFileLocation().resolve(LINJEDATA_TXT));
 		verify(stagingService).stageFile(KONTOR_CSV, batchParameters.staticInputFileLocation().resolve(KONTOR_CSV));
 		verify(stagingService).stageFile(VEDLEGG_CSV, batchParameters.staticInputFileLocation().resolve(VEDLEGG_CSV));
-		verify(jobService).start(jobParameters);
+		verify(jobService).start(jobParametersCaptor.capture());
+		Date startTime = jobParametersCaptor.getValue().getDate(START_TIME_KEY);
+		assertNotNull(startTime);
+		String startedFileName = "started-" + formatDateToSeconds(startTime) + ".txt";
+		verify(sftpFileService).createEmptyFile(startedFileName);
+		verify(sftpFileService).deleteFile(startedFileName);
 	}
 
 	@Test
@@ -92,7 +119,7 @@ public class SftpBatchServiceTest {
 
 		IllegalStateException exception = assertThrows(
 				IllegalStateException.class,
-				() -> service.startBatchIfReady(new JobParameters()));
+				() -> service.startBatchIfReady());
 
 		assertThat(exception.getMessage(), containsString(VEDLEGG_CSV));
 		verifyNoInteractions(stagingService, jobService);
@@ -107,9 +134,36 @@ public class SftpBatchServiceTest {
 
 		assertThrows(
 				IllegalStateException.class,
-				() -> service.startBatchIfReady(new JobParameters()));
+				() -> service.startBatchIfReady());
 
 		verifyNoInteractions(jobService);
+	}
+
+	@Test
+	public void shouldNotStartBatchWhenStartedMarkerCannotBeCreated() {
+		when(sftpFileService.listFiles()).thenReturn(requiredRemoteFiles());
+		doThrow(new IllegalStateException("write failed"))
+				.when(sftpFileService)
+				.createEmptyFile(any(String.class));
+
+		assertThrows(
+				IllegalStateException.class,
+				() -> service.startBatchIfReady());
+
+		verifyNoInteractions(jobService);
+	}
+
+	@Test
+	public void shouldKeepStartedMarkerWhenBatchFails() throws Exception {
+		JobExecution failedExecution = mock(JobExecution.class);
+		when(sftpFileService.listFiles()).thenReturn(requiredRemoteFiles());
+		when(jobService.start(any(JobParameters.class))).thenReturn(failedExecution);
+		when(failedExecution.getStatus()).thenReturn(BatchStatus.FAILED);
+
+		Optional<JobExecution> execution = service.startBatchIfReady();
+
+		assertEquals(Optional.of(failedExecution), execution);
+		verify(sftpFileService, never()).deleteFile(any(String.class));
 	}
 
 	private Set<String> requiredRemoteFiles() {

@@ -5,9 +5,9 @@ import org.apache.sshd.sftp.client.SftpClient;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,6 +36,19 @@ public class SftpFileService {
 		boolean read = remoteFileTemplate.get(remotePath(fileName), inputStream -> inputStream.transferTo(outputStream));
 		if (!read) {
 			throw new IllegalStateException("SFTP file not found: " + fileName);
+		}
+	}
+
+	public void createEmptyFile(String fileName) {
+		remoteFileTemplate.execute(session -> {
+			session.write(InputStream.nullInputStream(), remotePath(fileName));
+			return null;
+		});
+	}
+
+	public void deleteFile(String fileName) {
+		if (!remoteFileTemplate.remove(remotePath(fileName))) {
+			throw new IllegalStateException("SFTP file could not be deleted: " + fileName);
 		}
 	}
 

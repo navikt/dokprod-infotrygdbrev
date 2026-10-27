@@ -4,11 +4,15 @@ import no.nav.dokprod.infotrygdbrev.bdok100.config.DokprodInfotrygdbrevPropertie
 import org.apache.sshd.sftp.client.SftpClient;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.integration.file.remote.InputStreamCallback;
+import org.springframework.integration.file.remote.SessionCallback;
+import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.Set;
 
@@ -84,6 +88,39 @@ public class SftpFileServiceTest {
 		assertThrows(
 				IllegalStateException.class,
 				() -> service.readFile("missing.txt", new ByteArrayOutputStream()));
+	}
+
+	@Test
+	public void shouldCreateEmptyRemoteFile() throws Exception {
+		Session<SftpClient.DirEntry> session = mock(Session.class);
+		doAnswer(invocation -> {
+			SessionCallback<SftpClient.DirEntry, Void> callback = invocation.getArgument(0);
+			return callback.doInSession(session);
+		}).when(remoteFileTemplate).execute(any());
+
+		service.createEmptyFile("started.txt");
+
+		ArgumentCaptor<InputStream> inputStreamCaptor = ArgumentCaptor.forClass(InputStream.class);
+		verify(session).write(inputStreamCaptor.capture(), eq(REMOTE_DIRECTORY + "/started.txt"));
+		assertArrayEquals(new byte[0], inputStreamCaptor.getValue().readAllBytes());
+	}
+
+	@Test
+	public void shouldDeleteRemoteFile() {
+		when(remoteFileTemplate.remove(REMOTE_DIRECTORY + "/started.txt")).thenReturn(true);
+
+		service.deleteFile("started.txt");
+
+		verify(remoteFileTemplate).remove(REMOTE_DIRECTORY + "/started.txt");
+	}
+
+	@Test
+	public void shouldFailWhenRemoteFileCannotBeDeleted() {
+		when(remoteFileTemplate.remove(REMOTE_DIRECTORY + "/started.txt")).thenReturn(false);
+
+		assertThrows(
+				IllegalStateException.class,
+				() -> service.deleteFile("started.txt"));
 	}
 
 	private SftpClient.DirEntry entry(String name, boolean directory) {
