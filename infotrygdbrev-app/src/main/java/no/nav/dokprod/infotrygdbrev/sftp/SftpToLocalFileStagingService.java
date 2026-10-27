@@ -1,6 +1,6 @@
 package no.nav.dokprod.infotrygdbrev.sftp;
 
-import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.Bdok100BatchParameters;
+import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;

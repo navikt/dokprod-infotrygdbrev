@@ -3,7 +3,6 @@ package no.nav.dokprod.infotrygdbrev.bdok100.config;
 import no.nav.brevogarkiv.batch.common.ExecutionContextWorkUnitCompletionPolicy;
 import no.nav.brevogarkiv.batch.common.LogContextListener;
 import no.nav.brevogarkiv.batch.common.MaxFailuresChunkListener;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.Bdok100BatchParameters;
 import no.nav.dokprod.infotrygdbrev.bdok100.repo.Bdok100Repo;
 import no.nav.dokprod.infotrygdbrev.bdok100.support.AsyncSakConsumer;
 import no.nav.dokprod.infotrygdbrev.common.ExitStatusJobExecutionListener;

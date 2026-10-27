@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import no.nav.brevogarkiv.batch.common.CommonBatchInputParameters;
 import no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.Bdok100BatchParameters;
+import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
 import no.nav.dokprod.infotrygdbrev.common.BDOKCommonBatchInputParameters;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.batch.core.job.JobExecution;

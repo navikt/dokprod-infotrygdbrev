@@ -1,4 +1,4 @@
-package no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100;
+package no.nav.dokprod.infotrygdbrev.bdok100.config;
 
 import com.google.common.collect.Lists;
 import jakarta.persistence.EntityManagerFactory;

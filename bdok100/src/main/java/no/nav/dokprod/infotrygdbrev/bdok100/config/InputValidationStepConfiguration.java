@@ -1,4 +1,4 @@
-package no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100;
+package no.nav.dokprod.infotrygdbrev.bdok100.config;
 
 import no.nav.dokprod.infotrygdbrev.bdok100.Bdok100Constants;
 import no.nav.dokprod.infotrygdbrev.bdok100.support.to.NAVKontors;

@@ -1,4 +1,4 @@
-package no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100;
+package no.nav.dokprod.infotrygdbrev.bdok100.config;
 
 import no.nav.brevogarkiv.batch.common.LogContextListener;
 import no.nav.brevogarkiv.batch.common.ProgressNotifier;

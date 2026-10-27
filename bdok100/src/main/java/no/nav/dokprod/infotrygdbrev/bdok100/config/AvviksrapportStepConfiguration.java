@@ -1,8 +1,7 @@
-package no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100;
+package no.nav.dokprod.infotrygdbrev.bdok100.config;
 
 import jakarta.persistence.EntityManagerFactory;
 import no.nav.dokprod.infotrygdbrev.bdok100.Bdok100Constants;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100Config;
 import no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100ArbTbl;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.repository.JobRepository;

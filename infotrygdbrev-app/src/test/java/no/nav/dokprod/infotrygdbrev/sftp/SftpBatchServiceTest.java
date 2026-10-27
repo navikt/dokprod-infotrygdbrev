@@ -1,7 +1,7 @@
 package no.nav.dokprod.infotrygdbrev.sftp;
 
 import no.nav.dokprod.infotrygdbrev.batch.Bdok100JobService;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.Bdok100BatchParameters;
+import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

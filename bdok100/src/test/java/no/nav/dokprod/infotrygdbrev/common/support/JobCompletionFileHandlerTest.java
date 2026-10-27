@@ -6,7 +6,7 @@ import static org.junit.Assert.assertTrue;
 import com.google.common.collect.Lists;
 import no.nav.brevogarkiv.batch.common.CommonBatchInputParameters;
 import no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.Bdok100BatchParameters;
+import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
 import no.nav.dokprod.infotrygdbrev.util.NavExitStatus;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Before;

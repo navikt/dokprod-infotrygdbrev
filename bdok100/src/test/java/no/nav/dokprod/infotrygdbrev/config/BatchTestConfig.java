@@ -2,7 +2,7 @@ package no.nav.dokprod.infotrygdbrev.config;
 
 import no.nav.dokprod.infotrygdbrev.bdok100.config.BatchCommonConfig;
 import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100Config;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.Bdok100BatchParameters;
+import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Bean;

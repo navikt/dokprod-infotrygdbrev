@@ -9,7 +9,7 @@ import no.nav.brevogarkiv.batch.common.CommonBatchInputParameters;
 import no.nav.brevogarkiv.batch.common.CounterEvent;
 import no.nav.brevogarkiv.batch.common.EventCounter;
 import no.nav.brevogarkiv.batch.common.MaxFailuresChunkListener;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.Bdok100BatchParameters;
+import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
 import no.nav.dokprod.infotrygdbrev.bdok100.repo.Bdok100Repo;
 import no.nav.dokprod.infotrygdbrev.bdok100.support.to.NAVKontors;
 import no.nav.dokprod.infotrygdbrev.common.AbstractSpringBatchTest;
