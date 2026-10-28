@@ -1,6 +1,5 @@
 package no.nav.dokprod.infotrygdbrev.bdok100.domain;
 
-import io.hypersistence.utils.hibernate.type.json.JsonBlobType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,7 +10,7 @@ import lombok.SneakyThrows;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -19,11 +18,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import org.hibernate.type.SqlTypes;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
@@ -50,7 +49,6 @@ import static no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100Status.TIL_RAPP
 public class Bdok100ArbTbl {
 
 	private static int maxFeiletLength = getFeilstatusLength();
-	private static final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Id
 	@NotNull
@@ -59,7 +57,6 @@ public class Bdok100ArbTbl {
 	private String idnr;
 
 	// raw linjedata from file
-	@Lob
 	@Column(name = "linjeprint_brev", length = 50_000)
 	private String lineprintBrev;
 	// raw journaldata from file
@@ -75,12 +72,6 @@ public class Bdok100ArbTbl {
 	private Bdok100Status status;
 	@Column(name = "feilstatus", length = 1000)
 	private String feilstatus;
-	@Column(name = "vedlegg1")
-	private String vedlegg1;
-	@Column(name = "vedlegg2")
-	private String vedlegg2;
-	@Column(name = "vedlegg3")
-	private String vedlegg3;
 
 	// mapped classes
 	@Embedded
@@ -91,7 +82,7 @@ public class Bdok100ArbTbl {
 	private Journaldata journaldata;
 
 	@Singular("brevtekst")
-	@Type(JsonBlobType.class)
+	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "brevtekster")
 	private List<Bdok100Brevtekst> brevtekster;
 
