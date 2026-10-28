@@ -27,7 +27,13 @@ public class SftpFileService {
 
 	public Set<String> listFiles() {
 		return Arrays.stream(remoteFileTemplate.list(sftpProperties.remoteDirectory()))
-				.filter(entry -> !entry.getAttributes().isDirectory())
+			.filter(entry -> !entry.getAttributes().isDirectory())
+			.map(SftpClient.DirEntry::getFilename)
+			.collect(Collectors.toUnmodifiableSet());
+	}
+
+	public Set<String> list() {
+		return Arrays.stream(remoteFileTemplate.list(sftpProperties.remoteDirectory()))
 				.map(SftpClient.DirEntry::getFilename)
 				.collect(Collectors.toUnmodifiableSet());
 	}
