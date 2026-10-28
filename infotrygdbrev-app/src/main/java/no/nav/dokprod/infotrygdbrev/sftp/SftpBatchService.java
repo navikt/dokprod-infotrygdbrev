@@ -51,6 +51,8 @@ public class SftpBatchService {
 		if (!remoteFiles.contains(READY_FILE_NAME)) {
 			if (!remoteFiles.isEmpty()) {
 				log.debug("bdok100 found files, but no ready-marker. files: {}", remoteFiles);
+				log.debug("bdok100 lager en ready.txt sjæl yolo");
+				sftpFileService.createEmptyFile(READY_FILE_NAME);
 			} else {
 				Set<String> remoteIncludingDirs = sftpFileService.listFiles();
 				log.debug("bdok100 found no files on sftp: ls: {}", remoteIncludingDirs);
