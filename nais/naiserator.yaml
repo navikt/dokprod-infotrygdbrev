@@ -51,12 +51,6 @@ spec:
       value: "/var/run/secrets/nais_secrets/SSH_PRIVATE_KEY"
     - name: DOKPROD_INFOTRYGDBREV_SFTP_KNOWN_HOSTS_FILE
       value: "/var/run/config/nais_config/SFTP_KNOWN_HOSTS_FILE"
-    - name: SPRING_DATASOURCE_URL
-      value: {{ NAIS_DATABASE_JDBC_URL }}
-    - name: SPRING_DATASOURCE_USERNAME
-      value: {{ NAIS_DATABASE_USERNAME }}
-    - name: SPRING_DATASOURCE_PASSWORD
-      value: {{ NAIS_DATABASE_PASSWORD }}
     - name: OTEL_RESOURCE_ATTRIBUTES
       value: "deployment.environment.name={{ ENVIRONMENT }}"
   image: {{ image }}
@@ -87,13 +81,6 @@ spec:
   uses:
     postgres:
       - name: dokprodinfotrygdbrev
-  gcp:
-    sqlInstances:
-      - type: POSTGRES_18
-        tier: db-f1-micro
-        cascadingDelete: true
-        databases:
-          - name: dokprodinfotrygdbrev
   observability:
     autoInstrumentation:
       enabled: true
