@@ -155,14 +155,8 @@ public class LoadToArbTblStepConfiguration {
 	public JdbcBatchItemWriter<UpdateArbTbl> arbTblJournaldataUpdater(DataSource dataSource) throws Exception {
 		JdbcBatchItemWriter<UpdateArbTbl> writer = new JdbcBatchItemWriter<>();
 		writer.setDataSource(dataSource);
-		String using;
-		if (DatabaseType.fromMetaData(dataSource) == DatabaseType.HSQL) {
-			using = "USING (values(1)) as dual ";
-		} else {
-			using = "USING dual ";
-		}
 		writer.setSql("MERGE INTO ARBTB_BDOK100 a "
-				+ using
+				+ "USING (values(1)) as dual "
 				+ "ON (a.id_nr = :onDemandId) "
 				+ "WHEN MATCHED THEN "
 				+ "UPDATE SET "
