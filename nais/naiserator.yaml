@@ -84,6 +84,9 @@ spec:
     requests:
       cpu: 10m
       memory: 256Mi
+  uses:
+    postgres:
+      - name: dokprodinfotrygdbrev
   gcp:
     sqlInstances:
       - type: POSTGRES_18
