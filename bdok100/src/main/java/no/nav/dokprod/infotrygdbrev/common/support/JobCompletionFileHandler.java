@@ -4,21 +4,19 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import no.nav.brevogarkiv.batch.common.CommonBatchInputParameters;
 import no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper;
+import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
 import no.nav.dokprod.infotrygdbrev.common.BDOKCommonBatchInputParameters;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.batch.core.job.JobExecution;
-import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.listener.JobExecutionListener;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Date;
 
 /**
  * Moves files on job completion
- *
  */
 @Slf4j
 public class JobCompletionFileHandler implements JobExecutionListener {
@@ -35,9 +33,16 @@ public class JobCompletionFileHandler implements JobExecutionListener {
 	protected Date startTime;
 	private String jobName;
 
+	public JobCompletionFileHandler(Bdok100BatchParameters bdok100BatchParameters) {
+		inputFolder = bdok100BatchParameters.inputFileLocation();
+		behandletFolder = bdok100BatchParameters.behandletFileLocation();
+		failedFolder = bdok100BatchParameters.failedFileLocation();
+	}
+
 	@Override
 	public void afterJob(JobExecution jobExecution) {
-		getFolders(jobExecution);
+		startTime = (Date) jobExecution.getExecutionContext().get(CommonBatchInputParameters.START_TIME_KEY);
+		jobName = jobExecution.getJobInstance().getJobName().toLowerCase();
 		// If input validation failed we exit
 		if (jobExecution.getStepExecutions().size() <= 1) {
 			log.info("Input validation failed, not moving files");
@@ -59,21 +64,6 @@ public class JobCompletionFileHandler implements JobExecutionListener {
 			default:
 				fail();
 		}
-	}
-
-	private void getFolders(JobExecution jobExecution) {
-		JobParameters jobParameters = jobExecution.getJobParameters();
-
-		inputFolder = Paths.get(jobParameters.getString(CommonBatchInputParameters.INPUT_FILE_LOCATION_KEY));
-		behandletFolder = Paths.get(jobParameters.getString(CommonBatchInputParameters.BEHANDLET_FILE_LOCATION_KEY));
-		failedFolder = Paths.get(jobParameters.getString(CommonBatchInputParameters.FAILED_FILE_LOCATION_KEY));
-
-		if (jobParameters.getString(CommonBatchInputParameters.WORKSPACE_FILE_LOCATION_KEY) != null) {
-			workspaceFolder = Paths.get(jobParameters.getString(CommonBatchInputParameters.WORKSPACE_FILE_LOCATION_KEY));
-		}
-
-		startTime = (Date) jobExecution.getExecutionContext().get(CommonBatchInputParameters.START_TIME_KEY);
-		jobName = jobExecution.getJobInstance().getJobName().toLowerCase();
 	}
 
 	protected void ok() {

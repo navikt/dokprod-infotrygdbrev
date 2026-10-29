@@ -10,15 +10,11 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 
-/**
- * Tasklet for validating an InputFileLocation.
- *
- */
 public class InputDirectoryValidationTasklet implements Tasklet, InitializingBean {
 
 	private Resource inputFileLocation;
 
-	public void setInputFileLocation(Resource inputFileLocation) {
+	public InputDirectoryValidationTasklet(Resource inputFileLocation) {
 		this.inputFileLocation = inputFileLocation;
 	}
 

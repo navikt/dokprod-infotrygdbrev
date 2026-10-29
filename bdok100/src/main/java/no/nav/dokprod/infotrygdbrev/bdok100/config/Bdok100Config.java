@@ -10,19 +10,7 @@ import no.nav.brevogarkiv.batch.common.ProgressLoggerListener;
 import no.nav.brevogarkiv.batch.common.ProgressNotifier;
 import no.nav.brevogarkiv.batch.common.SimpleBatchCounter;
 import no.nav.brevogarkiv.batch.common.TableFormatter;
-import no.nav.brevogarkiv.batch.common.validator.CommonJobParametersValidator;
 import no.nav.dokprod.infotrygdbrev.bdok100.Bdok100Events;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.AvviksfilerStepConfiguration;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.AvviksrapportStepConfiguration;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.CleanArbeidsTabellStepConfiguration;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.GsakStepConfiguration;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.InputValidationStepConfiguration;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.KontrollrapportStepConfiguration;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.LoadToArbTblStepConfiguration;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.MappingStepConfiguration;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.ReadNAVKontorStepConfiguration;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.ReadVedleggsListStepConfiguration;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100.XmlWriterStepConfiguration;
 import no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100ArbTbl;
 import no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100Status;
 import no.nav.dokprod.infotrygdbrev.bdok100.repo.Bdok100Repo;
@@ -50,11 +38,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.beans.factory.annotation.Qualifier;
 import jakarta.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
-import java.util.ArrayList;
-import java.util.Arrays;
+
+import java.nio.file.Path;
 
 import static java.util.Collections.singletonList;
-import static no.nav.dokprod.infotrygdbrev.bdok100.Bdok100Constants.STATIC_INPUT_FILE_LOCATION_KEY;
 
 /**
  * Spring configuration for BDOK100
@@ -70,6 +57,7 @@ import static no.nav.dokprod.infotrygdbrev.bdok100.Bdok100Constants.STATIC_INPUT
 		KontrollrapportStepConfiguration.class,
 		AvviksrapportStepConfiguration.class,
 		AvviksfilerStepConfiguration.class,
+		Bdok100BatchParameterExecutionContextPopulator.class,
 		CleanArbeidsTabellStepConfiguration.class
 })
 @Configuration
@@ -81,6 +69,17 @@ public class Bdok100Config {
 	private static final String START = CleanableOnlyEmptyDecider.START.getName();
 	private static final String CLEAN = CleanableOnlyEmptyDecider.CLEAN.getName();
 
+	private static final Path WORK_DIRECTORY = Path.of(
+			System.getProperty("java.io.tmpdir"),
+			"dokprod-infotrygdbrev",
+			"bdok100");
+
+	public static final Path INPUT_FILE_LOCATION_VALUE = WORK_DIRECTORY.resolve("input");
+	public static final Path STATIC_INPUT_FILE_LOCATION_VALUE = WORK_DIRECTORY.resolve("static");
+	public static final Path OUTPUT_FILE_LOCATION_VALUE = WORK_DIRECTORY.resolve("output");
+	public static final Path FAILED_FILE_LOCATION_VALUE = WORK_DIRECTORY.resolve("failed");
+	public static final Path BEHANDLET_FILE_LOCATION_VALUE = WORK_DIRECTORY.resolve("behandlet");
+
 
 	@Bean
 	public Jpa2PingRepository pingRepository() {
@@ -88,7 +87,7 @@ public class Bdok100Config {
 	}
 
 	@Bean
-	public Job bdok100Job(CommonJobParametersValidator bdok100JobParametersValidator,
+	public Job bdok100Job(Bdok100BatchParameterExecutionContextPopulator bdok100BatchParameterExecutionContextPopulator,
 						  LogContextListener logContextListener,
 						  UserIdMdcJobExecutionListener userIdMdcJobExecutionListener,
 						  CompositeJobExecutionListener bdok100BatchExitListener,
@@ -109,11 +108,10 @@ public class Bdok100Config {
 						  Step createAvviksrapportStep,
 						  Step cleanArbeidsTabellStep) {
 		return new JobBuilder(JOB_NAME, jobRepository)
-				.validator(bdok100JobParametersValidator)
 				.listener(logContextListener)
 				.listener(userIdMdcJobExecutionListener)
 				.listener(bdok100BatchExitListener)
-				.listener(bdok100JobParametersValidator)
+				.listener(bdok100BatchParameterExecutionContextPopulator)
 				.listener(bdok100BatchCounterLogger())
 				.listener(jobCompletionFileHandler)
 
@@ -176,7 +174,7 @@ public class Bdok100Config {
 	}
 
 	public static JpaCursorItemReader<Bdok100ArbTbl> createArbTblReaderForStatus(
-		Bdok100Status status, Integer workUnit, EntityManagerFactory em) {
+		Bdok100Status status, EntityManagerFactory em) {
 		JpaCursorItemReader<Bdok100ArbTbl> rd = createArbTblReaderWithoutQuery(em);
 		rd.setQueryString("from Bdok100ArbTbl arbtbl where arbtbl.status = '" + status + "'");
 		return rd;
@@ -200,35 +198,23 @@ public class Bdok100Config {
 	}
 
 	@Bean
-	public CommonJobParametersValidator bdok100JobParametersValidator(
-			@Qualifier("commonJobParametersValidator")
-					CommonJobParametersValidator commonJobParametersValidator,
-			CommonJobParametersValidator.StringUriJobParameter inputFileLocationParameter,
-			CommonJobParametersValidator.StringUriJobParameter staticInputFileLocationParameter,
-			CommonJobParametersValidator.StringUriJobParameter outputFileLocationParameter,
-			CommonJobParametersValidator.StringLongJobParameter maxFailuresParameter,
-			CommonJobParametersValidator.StringUriJobParameter behandletFileLocationParameter,
-			CommonJobParametersValidator.StringUriJobParameter failedFileLocationParameter,
-			CommonJobParametersValidator.StringBooleanJobParameter skipClean,
-			CommonJobParametersValidator.StringBooleanJobParameter clean) {
-		CommonJobParametersValidator bdok100JobParametersValidator = new CommonJobParametersValidator();
-		bdok100JobParametersValidator.setRequiredParameters(commonJobParametersValidator.getRequiredParameters());
-		bdok100JobParametersValidator.addRequiredParameters(
-				Arrays.asList(
-						inputFileLocationParameter,
-						staticInputFileLocationParameter,
-						outputFileLocationParameter,
-						maxFailuresParameter,
-						behandletFileLocationParameter,
-						failedFileLocationParameter)
-		);
-		ArrayList<CommonJobParametersValidator.StringJobParameter> optional =
-				Lists.newArrayList(commonJobParametersValidator.getOptionalParameters());
-		optional.add(skipClean);
-		optional.add(clean);
-		bdok100JobParametersValidator.setOptionalParameters(optional);
-		return bdok100JobParametersValidator;
+	Bdok100BatchParameters bdok100BatchParameterProvider(DokprodInfotrygdbrevProperties dokprodInfotrygdbrevProperties) {
+		return new Bdok100BatchParameters(INPUT_FILE_LOCATION_VALUE, STATIC_INPUT_FILE_LOCATION_VALUE, OUTPUT_FILE_LOCATION_VALUE, FAILED_FILE_LOCATION_VALUE, BEHANDLET_FILE_LOCATION_VALUE, 2, dokprodInfotrygdbrevProperties.maxFailures());
 	}
+
+	// // batchens parametre (fra confluence)                                          // fremover
+	// startTime               // standard // tidspunkt start batch       // påkrevd   // LocalDateTime.now() e.l.
+	// workUnit                // standard // chunksize for batch         // påkrevd   // fra config
+	// progressInterval        // standard // hvor ofte logges progress   // optional  // droppes
+	// inputFileLocation       // bdok100  // inputfiler                  // påkrevd   // statisk / fra sftp
+	// staticInputFileLocation // bdok100  // statiske inputfiler         // påkrevd   // statisk / fra sftp
+	// outputFileLocation      // bdok100  // rapporter output            // påkrevd   // statisk
+	// maxFailures             // bdok100  // max feil før jobb avbrytes  // påkrevd   // fra config
+	// failedFileLocation      // bdok100  // Metabatch BMF001 fail       // påkrevd   // statisk
+	// behandletFileLocation   // bdok100  // Metabatch BMF001 success    // påkrevd   // statisk
+	// skipClean               // bdok100  // ikke rydd etter kjøring     // optional  // fra config?
+	// clean                   // bdok100  // rydd arbeidstab., ikke kjør // optional  // fra config?
+
 
 	@Bean
 	public ExceptionHandler bdok100ExceptionHandler() {
@@ -255,11 +241,6 @@ public class Bdok100Config {
 	@Bean
 	public ProgressListener bdok100ProgressListener() {
 		return new ProgressLoggerListener(LOGNAME, new TableFormatter());
-	}
-
-	@Bean
-	public CommonJobParametersValidator.StringUriJobParameter staticInputFileLocationParameter() {
-		return new CommonJobParametersValidator.StringUriJobParameter(STATIC_INPUT_FILE_LOCATION_KEY);
 	}
 
 	@Bean

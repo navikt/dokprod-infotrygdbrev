@@ -130,7 +130,7 @@ public class CreateKontrollrapportStepTest extends AbstractBdok100StepTest {
 		JobExecution jobExecution = launchStep("createKontrollrapportStep", getDefaultBdok100JobParameters(), jobExecutionContext);
 		assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
 
-		String[] list = tmpOutFileFolder.toFile().list();
+		String[] list = workspace.output().toFile().list();
 		String filename = list != null ? list[0] : "";
 		assertThat(filename, startsWith(FILENAME_START));
 		String outputFileAsString = getOutputFileAsString(filename, Bdok100Constants.BDOK100_OUTPUT_CHARSET);

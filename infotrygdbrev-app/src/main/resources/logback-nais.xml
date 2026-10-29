@@ -20,7 +20,7 @@
 		<appender-ref ref="applikasjonslogg"/>
 	</root>
 
-	<logger name="no.nav.dokprod.infotrygdbrev" level="INFO" additivity="false">
+	<logger name="no.nav.dokprod.infotrygdbrev" level="DEBUG" additivity="false">
 		<appender-ref ref="applikasjonslogg"/>
 	</logger>
 

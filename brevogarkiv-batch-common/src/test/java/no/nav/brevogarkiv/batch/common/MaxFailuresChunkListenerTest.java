@@ -4,31 +4,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.step.StepExecution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.scope.context.StepContext;
 import org.springframework.batch.test.MetaDataInstanceFactory;
 
-/**
- * Unit test for {@link MaxFailuresChunkListener}
- *
- * @author Roar Bjurstrom, Visma Consulting.
- */
-@ExtendWith(MockitoExtension.class)
 public class MaxFailuresChunkListenerTest {
-
-	@InjectMocks
-	private MaxFailuresChunkListener listener;
 
 	@Test
 	public void shouldThrowWhenMaxFailuresIsExceeded() throws Exception {
+		MaxFailuresChunkListener listener = new MaxFailuresChunkListener(1);
 		JobExecution jobExecution = MetaDataInstanceFactory.createJobExecution();
 		jobExecution.getExecutionContext().putLong(MaxFailuresChunkListener.NO_OF_FAILURES_KEY, 2);
-		jobExecution.getExecutionContext().putLong(CommonBatchInputParameters.MAX_FAILURES, 1);
 
 		ChunkContext context = createChunkContext(jobExecution);
 
@@ -39,9 +27,9 @@ public class MaxFailuresChunkListenerTest {
 
 	@Test
 	public void shouldThrowWhenMaxFailuresIsEqual() throws Exception {
+		MaxFailuresChunkListener listener = new MaxFailuresChunkListener(1);
 		JobExecution jobExecution = MetaDataInstanceFactory.createJobExecution();
 		jobExecution.getExecutionContext().putLong(MaxFailuresChunkListener.NO_OF_FAILURES_KEY, 1);
-		jobExecution.getExecutionContext().putLong(CommonBatchInputParameters.MAX_FAILURES, 1);
 
 		ChunkContext context = createChunkContext(jobExecution);
 
@@ -52,9 +40,9 @@ public class MaxFailuresChunkListenerTest {
 
 	@Test
 	public void shouldNotThrowWhenMaxFailuresIsBelow() throws Exception {
+		MaxFailuresChunkListener listener = new MaxFailuresChunkListener(1);
 		JobExecution jobExecution = MetaDataInstanceFactory.createJobExecution();
 		jobExecution.getExecutionContext().putLong(MaxFailuresChunkListener.NO_OF_FAILURES_KEY, 0);
-		jobExecution.getExecutionContext().putLong(CommonBatchInputParameters.MAX_FAILURES, 1);
 
 		ChunkContext context = createChunkContext(jobExecution);
 

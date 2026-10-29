@@ -1,15 +1,12 @@
 package no.nav.dokprod.infotrygdbrev.common.support;
 
-import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.BEHANDLET_FILE_LOCATION_KEY;
-import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.FAILED_FILE_LOCATION_KEY;
-import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.INPUT_FILE_LOCATION_KEY;
 import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.formatDateToSeconds;
-import static org.apache.commons.io.FilenameUtils.separatorsToUnix;
 import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.Lists;
 import no.nav.brevogarkiv.batch.common.CommonBatchInputParameters;
 import no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper;
+import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
 import no.nav.dokprod.infotrygdbrev.util.NavExitStatus;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Before;
@@ -19,6 +16,7 @@ import org.junit.rules.TemporaryFolder;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.JobInstance;
+import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.batch.core.step.StepExecution;
 
@@ -40,7 +38,7 @@ public class JobCompletionFileHandlerTest {
 	@Rule
 	public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-	private JobCompletionFileHandler jobCompletionFileHandler = new JobCompletionFileHandler();
+	private JobCompletionFileHandler jobCompletionFileHandler;
 	private JobExecution jobExecution;
 
 	private Path in;
@@ -55,13 +53,12 @@ public class JobCompletionFileHandlerTest {
 
 		behandlet = temporaryFolder.newFolder("behandlet").toPath();
 		failed = temporaryFolder.newFolder("failed").toPath();
-		JobParametersBuilder parametersBuilder = new JobParametersBuilder()
-				.addString(INPUT_FILE_LOCATION_KEY, separatorsToUnix(in.toString()))
-				.addString(BEHANDLET_FILE_LOCATION_KEY, separatorsToUnix(behandlet.toString()))
-				.addString(FAILED_FILE_LOCATION_KEY, separatorsToUnix(failed.toString()));
+		JobParameters parameters = new JobParametersBuilder().toJobParameters();
 
-		jobExecution = new JobExecution(1L, new JobInstance(1L, JOB_NAME), parametersBuilder.toJobParameters());
+		jobExecution = new JobExecution(1L, new JobInstance(1L, JOB_NAME), parameters);
 		jobExecution.getExecutionContext().put(CommonBatchInputParameters.START_TIME_KEY, START_TIME);
+		jobCompletionFileHandler = new JobCompletionFileHandler(
+			new Bdok100BatchParameters(in, null, null, failed, behandlet, 0, 0));
 	}
 
 	@Test

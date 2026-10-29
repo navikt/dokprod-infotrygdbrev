@@ -1,10 +1,8 @@
 package no.nav.dokprod.infotrygdbrev.bdok100.config;
 
-import no.nav.brevogarkiv.batch.common.CommonBatchInputParameters;
 import no.nav.brevogarkiv.batch.common.ExecutionContextWorkUnitCompletionPolicy;
 import no.nav.brevogarkiv.batch.common.LogContextListener;
 import no.nav.brevogarkiv.batch.common.MaxFailuresChunkListener;
-import no.nav.brevogarkiv.batch.common.validator.CommonJobParametersValidator;
 import no.nav.dokprod.infotrygdbrev.bdok100.repo.Bdok100Repo;
 import no.nav.dokprod.infotrygdbrev.bdok100.support.AsyncSakConsumer;
 import no.nav.dokprod.infotrygdbrev.common.ExitStatusJobExecutionListener;
@@ -21,11 +19,10 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.configuration.support.MapJobRegistry;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.io.Resource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
@@ -34,14 +31,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.INPUT_FILE_LOCATION_KEY;
-import static no.nav.dokprod.infotrygdbrev.common.BDOKCommonBatchInputParameters.CLEAN_KEY;
-import static no.nav.dokprod.infotrygdbrev.common.BDOKCommonBatchInputParameters.SKIP_CLEAN_KEY;
 
 @Configuration
 @Import({ConsumerConfig.class, Bdok100Config.class})
@@ -139,96 +131,21 @@ public class BatchCommonConfig implements AsyncConfigurer {
 		return new ExitStatusJobExecutionListener();
 	}
 
-	@Bean
-	public CommonJobParametersValidator.StringLongJobParameter workUnitParameter() {
-		return new CommonJobParametersValidator
-				.StringLongJobParameter(CommonBatchInputParameters.WORK_UNIT_KEY);
-	}
-
-	@Bean
-	public CommonJobParametersValidator.StringUriJobParameter inputFileLocationParameter() {
-		return new CommonJobParametersValidator
-				.StringUriJobParameter(INPUT_FILE_LOCATION_KEY);
-	}
-
-	@Bean
-	public CommonJobParametersValidator.StringUriJobParameter outputFileLocationParameter() {
-		return new CommonJobParametersValidator
-				.StringUriJobParameter(CommonBatchInputParameters.OUTPUT_FILE_LOCATION_KEY);
-	}
-
-	@Bean
-	public CommonJobParametersValidator.StringUriJobParameter failedFileLocationParameter() {
-		return new CommonJobParametersValidator
-				.StringUriJobParameter(CommonBatchInputParameters.FAILED_FILE_LOCATION_KEY);
-	}
-
-	@Bean
-	public CommonJobParametersValidator.StringUriJobParameter inWorkFileLocationParameter() {
-		return new CommonJobParametersValidator
-				.StringUriJobParameter(CommonBatchInputParameters.WORKSPACE_FILE_LOCATION_KEY);
-	}
-
-	@Bean
-	public CommonJobParametersValidator.StringUriJobParameter behandletFileLocationParameter() {
-		return new CommonJobParametersValidator
-				.StringUriJobParameter(CommonBatchInputParameters.BEHANDLET_FILE_LOCATION_KEY);
-	}
-
-	@Bean
-	public CommonJobParametersValidator.StringLongJobParameter progressIntervalParameter() {
-		return new CommonJobParametersValidator
-				.StringLongJobParameter(CommonBatchInputParameters.PROGRESS_INTERVAL_KEY);
-	}
-
-	@Bean
-	public CommonJobParametersValidator.StringLongJobParameter maxFailuresParameter() {
-		return new CommonJobParametersValidator
-				.StringLongJobParameter(CommonBatchInputParameters.MAX_FAILURES);
-	}
-
-	@Bean
-	public CommonJobParametersValidator.StringBooleanJobParameter skipClean() {
-		return new CommonJobParametersValidator.StringBooleanJobParameter(SKIP_CLEAN_KEY);
-	}
-
-	@Bean
-	public CommonJobParametersValidator.StringBooleanJobParameter clean() {
-		return new CommonJobParametersValidator.StringBooleanJobParameter(CLEAN_KEY);
-	}
 
 
 	@Bean
 	@StepScope
-	public InputDirectoryValidationTasklet inputDirectoryValidationTasklet(
-			@Value("file:#{jobParameters[" + INPUT_FILE_LOCATION_KEY + "]}") Resource inputFileLocation) {
-		InputDirectoryValidationTasklet inputDirectoryValidationTasklet = new InputDirectoryValidationTasklet();
-		inputDirectoryValidationTasklet.setInputFileLocation(inputFileLocation);
-		return inputDirectoryValidationTasklet;
+	public InputDirectoryValidationTasklet inputDirectoryValidationTasklet(Bdok100BatchParameters bdok100BatchParameters) {
+		return new InputDirectoryValidationTasklet(new FileSystemResource(bdok100BatchParameters.inputFileLocation()));
 	}
 
 	@Bean
-	public CommonJobParametersValidator commonJobParametersValidator(
-			CommonJobParametersValidator.StringDateJobParameter startTimeParameter) {
-		CommonJobParametersValidator jobParametersValidator = new CommonJobParametersValidator();
-		jobParametersValidator.setRequiredParameters(
-				Arrays.asList(
-						workUnitParameter(),
-						startTimeParameter
-				)
-		);
-		jobParametersValidator.setOptionalParameters(Collections.singletonList(progressIntervalParameter()));
-
-		return jobParametersValidator;
+	public MaxFailuresChunkListener maxFailuresChunkListener(Bdok100BatchParameters bdok100BatchParameters) {
+		return new MaxFailuresChunkListener(bdok100BatchParameters.maxFailures());
 	}
 
 	@Bean
-	public MaxFailuresChunkListener maxFailuresChunkListener() {
-		return new MaxFailuresChunkListener();
-	}
-
-	@Bean
-	public JobCompletionFileHandler jobCompletionFileHandler() {
-		return new JobCompletionFileHandler();
+	public JobCompletionFileHandler jobCompletionFileHandler(Bdok100BatchParameters bdok100BatchParameters) {
+		return new JobCompletionFileHandler(bdok100BatchParameters);
 	}
 }

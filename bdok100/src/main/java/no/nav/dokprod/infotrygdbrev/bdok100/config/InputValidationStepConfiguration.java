@@ -1,7 +1,5 @@
-package no.nav.dokprod.infotrygdbrev.bdok100.config.bdok100;
+package no.nav.dokprod.infotrygdbrev.bdok100.config;
 
-import com.google.common.collect.Lists;
-import lombok.SneakyThrows;
 import no.nav.dokprod.infotrygdbrev.bdok100.Bdok100Constants;
 import no.nav.dokprod.infotrygdbrev.bdok100.support.to.NAVKontors;
 import no.nav.dokprod.infotrygdbrev.bdok100.support.to.VedleggsLister;
@@ -16,32 +14,22 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.infrastructure.item.ExecutionContext;
 import org.springframework.batch.infrastructure.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.BEHANDLET_FILE_LOCATION_KEY;
-import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.FAILED_FILE_LOCATION_KEY;
-import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.INPUT_FILE_LOCATION_KEY;
-import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.OUTPUT_FILE_LOCATION_KEY;
-import static no.nav.dokprod.infotrygdbrev.bdok100.Bdok100Constants.STATIC_INPUT_FILE_LOCATION_KEY;
 import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.JOURNALDATA_CSV;
 import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.KONTOR_CSV;
 import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.LINJEDATA_TXT;
 import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.VEDLEGG_CSV;
 import static no.nav.dokprod.infotrygdbrev.common.BDOKCommonBatchInputParameters.CLEAN_KEY;
 
-/**
- * Inputvalidation step configuration
- *
- */
 @Configuration
 public class InputValidationStepConfiguration extends AbstractBdok100StepConfig {
 
@@ -59,30 +47,38 @@ public class InputValidationStepConfiguration extends AbstractBdok100StepConfig 
 	@StepScope
 	@Bean
 	public Tasklet bdok100InputValidationTasklet(
-			@Value("file:#{jobParameters[" + INPUT_FILE_LOCATION_KEY + "]}") final Resource inputFileLocation,
-			@Value("file:#{jobParameters[" + STATIC_INPUT_FILE_LOCATION_KEY + "]}") Resource staticFileLocation,
-			@Value("file:#{jobParameters[" + OUTPUT_FILE_LOCATION_KEY + "]}") Resource outputFileLocation,
-			@Value("file:#{jobParameters[" + BEHANDLET_FILE_LOCATION_KEY + "]}") Resource behandletFileLocation,
-			@Value("file:#{jobParameters[" + FAILED_FILE_LOCATION_KEY + "]}") Resource failedFileLocation,
+		Bdok100BatchParameters bdok100BatchParameters,
 			NAVKontors navKontors,
 			VedleggsLister vedleggsLister
-	) throws IOException {
-		Bdok100InputValidationTasklet tasklet = new Bdok100InputValidationTasklet();
-		tasklet.setInputFolder(inputFileLocation);
-		tasklet.setStaticInputFolder(staticFileLocation);
-		tasklet.setWritableAreas(outputFileLocation, behandletFileLocation, failedFileLocation);
-		tasklet.setNavKontors(navKontors);
-		tasklet.setVedleggsLister(vedleggsLister);
-		return tasklet;
+	) {
+		return new Bdok100InputValidationTasklet(
+			bdok100BatchParameters.inputFileLocation(),
+			bdok100BatchParameters.staticInputFileLocation(),
+			List.of(bdok100BatchParameters.outputFileLocation(), bdok100BatchParameters.behandletFileLocation(), bdok100BatchParameters.failedFileLocation()),
+			navKontors, vedleggsLister);
 	}
 
 	public static class Bdok100InputValidationTasklet implements Tasklet {
 
-		private Path inputFolder;
-		private Path staticInputFolder;
-		private List<Path> writeableFolders = Lists.newArrayList();
-		private NAVKontors navKontors;
-		private VedleggsLister vedleggsLister;
+		private final Path inputFolder;
+		private final Path staticInputFolder;
+		private final List<Path> writeableFolders = new ArrayList<>();
+		private final NAVKontors navKontors;
+		private final VedleggsLister vedleggsLister;
+
+		public Bdok100InputValidationTasklet(
+			Path inputFolder,
+			Path staticInputFolder,
+			Collection<Path> writeableFolders,
+			NAVKontors navKontors,
+			VedleggsLister vedleggsLister
+		) {
+			this.inputFolder = inputFolder;
+			this.staticInputFolder = staticInputFolder;
+			this.writeableFolders.addAll(writeableFolders);
+			this.navKontors = navKontors;
+			this.vedleggsLister = vedleggsLister;
+		}
 
 		@Override
 		public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
@@ -116,33 +112,6 @@ public class InputValidationStepConfiguration extends AbstractBdok100StepConfig 
 			if (!Files.isReadable(path)) {
 				throw new RuntimeException("Cannot read file " + path.toString());
 			}
-		}
-
-		public void setInputFolder(Resource inputFolder) {
-			this.inputFolder = toPath(inputFolder);
-		}
-
-		public void setStaticInputFolder(Resource staticInputFolder) {
-			this.staticInputFolder = toPath(staticInputFolder);
-		}
-
-		public void setWritableAreas(Resource... locations) {
-			for (Resource location : locations) {
-				writeableFolders.add(toPath(location));
-			}
-		}
-
-		public void setNavKontors(NAVKontors navKontors) {
-			this.navKontors = navKontors;
-		}
-
-		public void setVedleggsLister(VedleggsLister vedleggsLister) {
-			this.vedleggsLister = vedleggsLister;
-		}
-
-		@SneakyThrows
-		private Path toPath(Resource file) {
-			return file.getFile().toPath();
 		}
 	}
 }

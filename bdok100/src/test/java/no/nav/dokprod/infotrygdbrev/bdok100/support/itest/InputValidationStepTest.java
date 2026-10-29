@@ -18,12 +18,9 @@ import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.infrastructure.item.ExecutionContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
 import java.nio.file.Files;
 
-/**
- * Step test for input validation bdok100
- *
- */
 public class InputValidationStepTest extends AbstractBdok100StepTest {
 
 	public static final String STEP_NAME = "inputValidationStep";
@@ -46,13 +43,13 @@ public class InputValidationStepTest extends AbstractBdok100StepTest {
 	@Test
 	public void shouldIgnoreFilesIfRunClean() throws Exception {
 		JobParameters defaultBdok100JobParameters = getDefaultBdok100JobParameters();
-		Files.delete(tmpInputFileFolder.resolve(FilenameHelper.JOURNALDATA_CSV));
-		Files.delete(tmpInputFileFolder.resolve(FilenameHelper.LINJEDATA_TXT));
-		Files.delete(tmpInputFileFolder.resolve("static").resolve(FilenameHelper.KONTOR_CSV));
-		Files.delete(tmpInputFileFolder.resolve("static").resolve(FilenameHelper.VEDLEGG_CSV));
-		Files.delete(tmpOutFileFolder.resolveSibling("failed"));
-		Files.delete(tmpOutFileFolder.resolveSibling("behandlet"));
-		Files.delete(tmpOutFileFolder);
+		Files.delete(workspace.input().resolve(FilenameHelper.JOURNALDATA_CSV));
+		Files.delete(workspace.input().resolve(FilenameHelper.LINJEDATA_TXT));
+		Files.delete(workspace.staticInput().resolve(FilenameHelper.KONTOR_CSV));
+		Files.delete(workspace.staticInput().resolve(FilenameHelper.VEDLEGG_CSV));
+		Files.delete(workspace.failed());
+		Files.delete(workspace.behandlet());
+		Files.delete(workspace.output());
 		ExecutionContext jobExecutionContext = getJobExecutionContext();
 		jobExecutionContext.put(CLEAN_KEY, true);
 		JobExecution jobExecution = launchStep(STEP_NAME, defaultBdok100JobParameters, jobExecutionContext);
@@ -76,7 +73,7 @@ public class InputValidationStepTest extends AbstractBdok100StepTest {
 
 	@Test
 	public void shouldFailMissingJournaldata() throws Exception {
-		Files.delete(tmpInputFileFolder.resolve(FilenameHelper.JOURNALDATA_CSV));
+		Files.delete(workspace.input().resolve(FilenameHelper.JOURNALDATA_CSV));
 		JobExecution jobExecution = launchStep(STEP_NAME, getDefaultBdok100JobParameters(), getJobExecutionContext());
 		assertThat(jobExecution.getExitStatus().getExitCode(), is(ExitStatus.FAILED.getExitCode()));
 		assertThat(jobExecution.getExitStatus().toString(), containsString(FilenameHelper.JOURNALDATA_CSV));
@@ -84,7 +81,7 @@ public class InputValidationStepTest extends AbstractBdok100StepTest {
 
 	@Test
 	public void shouldFailMissingLinjedata() throws Exception {
-		Files.delete(tmpInputFileFolder.resolve(FilenameHelper.LINJEDATA_TXT));
+		Files.delete(workspace.input().resolve(FilenameHelper.LINJEDATA_TXT));
 		JobExecution jobExecution = launchStep(STEP_NAME, getDefaultBdok100JobParameters(), getJobExecutionContext());
 		assertThat(jobExecution.getExitStatus().getExitCode(), is(ExitStatus.FAILED.getExitCode()));
 		assertThat(jobExecution.getExitStatus().toString(), containsString(FilenameHelper.LINJEDATA_TXT));
@@ -92,7 +89,7 @@ public class InputValidationStepTest extends AbstractBdok100StepTest {
 
 	@Test
 	public void shouldFailMissingKontordata() throws Exception {
-		Files.delete(tmpInputFileFolder.resolve("static").resolve(FilenameHelper.KONTOR_CSV));
+		Files.delete(workspace.staticInput().resolve(FilenameHelper.KONTOR_CSV));
 		JobExecution jobExecution = launchStep(STEP_NAME, getDefaultBdok100JobParameters(), getJobExecutionContext());
 		assertThat(jobExecution.getExitStatus().getExitCode(), is(ExitStatus.FAILED.getExitCode()));
 		assertThat(jobExecution.getExitStatus().toString(), containsString(FilenameHelper.KONTOR_CSV));
@@ -100,7 +97,7 @@ public class InputValidationStepTest extends AbstractBdok100StepTest {
 
 	@Test
 	public void shouldFailMissingVedleggdata() throws Exception {
-		Files.delete(tmpInputFileFolder.resolve("static").resolve(FilenameHelper.VEDLEGG_CSV));
+		Files.delete(workspace.staticInput().resolve(FilenameHelper.VEDLEGG_CSV));
 		JobExecution jobExecution = launchStep(STEP_NAME, getDefaultBdok100JobParameters(), getJobExecutionContext());
 		assertThat(jobExecution.getExitStatus().getExitCode(), is(ExitStatus.FAILED.getExitCode()));
 		assertThat(jobExecution.getExitStatus().toString(), containsString(FilenameHelper.VEDLEGG_CSV));
@@ -109,7 +106,7 @@ public class InputValidationStepTest extends AbstractBdok100StepTest {
 	@Test
 	public void shouldFailCannotWriteBehandlet() throws Exception {
 		JobParameters jobParameters = getDefaultBdok100JobParameters();
-		Files.delete(tmpOutFileFolder.resolveSibling("behandlet"));
+		Files.delete(workspace.behandlet());
 		JobExecution jobExecution = launchStep(STEP_NAME, jobParameters, getJobExecutionContext());
 		assertThat(jobExecution.getExitStatus().getExitCode(), is(ExitStatus.FAILED.getExitCode()));
 		assertThat(jobExecution.getExitStatus().toString(), containsString("behandlet"));
@@ -118,7 +115,7 @@ public class InputValidationStepTest extends AbstractBdok100StepTest {
 	@Test
 	public void shouldFailCannotWriteFailed() throws Exception {
 		JobParameters jobParameters = getDefaultBdok100JobParameters();
-		Files.delete(tmpOutFileFolder.resolveSibling("failed"));
+		Files.delete(workspace.failed());
 		JobExecution jobExecution = launchStep(STEP_NAME, jobParameters, getJobExecutionContext());
 		assertThat(jobExecution.getExitStatus().getExitCode(), is(ExitStatus.FAILED.getExitCode()));
 		assertThat(jobExecution.getExitStatus().toString(), containsString("failed"));
@@ -127,7 +124,7 @@ public class InputValidationStepTest extends AbstractBdok100StepTest {
 	@Test
 	public void shouldFailCannotWriteOutFolder() throws Exception {
 		JobParameters jobParameters = getDefaultBdok100JobParameters();
-		Files.delete(tmpOutFileFolder);
+		Files.delete(workspace.output());
 		JobExecution jobExecution = launchStep(STEP_NAME, jobParameters, getJobExecutionContext());
 		assertThat(jobExecution.getExitStatus().getExitCode(), is(ExitStatus.FAILED.getExitCode()));
 		assertThat(jobExecution.getExitStatus().toString(), containsString("output"));

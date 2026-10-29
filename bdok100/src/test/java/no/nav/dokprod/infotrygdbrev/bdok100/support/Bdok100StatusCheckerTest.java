@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.JobInstance;
 import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public class Bdok100StatusCheckerTest {
@@ -26,9 +27,13 @@ public class Bdok100StatusCheckerTest {
 
 	@Before
 	public void setUp() throws Exception {
+		setUpExecutionContext();
+		checker.setRepo(repository);
+	}
+
+	private void setUpExecutionContext() {
 		jobExecution.getExecutionContext().putLong(Bdok100Constants.BEHANDLET_COUNT, 1L);
 		jobExecution.getExecutionContext().put(Bdok100Constants.IS_WARNING_EXIT, false);
-		checker.setRepo(repository);
 	}
 
 	@Test
@@ -56,8 +61,12 @@ public class Bdok100StatusCheckerTest {
 
 	@Test
 	public void shouldNotReportWarningIfBehandletNoneOnCleanRun() throws Exception {
+		JobParameters jobParameters = new JobParametersBuilder()
+				.addString(CLEAN_KEY, "true")
+				.toJobParameters();
+		jobExecution = new JobExecution(1L, new JobInstance(1L, "test"), jobParameters);
+		setUpExecutionContext();
 		jobExecution.getExecutionContext().putLong(Bdok100Constants.BEHANDLET_COUNT, 0L);
-		jobExecution.getExecutionContext().put(CLEAN_KEY, true);
 		assertFalse(checker.isWarning(jobExecution));
 		assertFalse(checker.isError(jobExecution));
 		appender.verifyZeroInteractions();

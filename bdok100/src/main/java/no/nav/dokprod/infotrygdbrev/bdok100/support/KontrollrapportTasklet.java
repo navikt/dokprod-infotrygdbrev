@@ -16,13 +16,11 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
 
-/**
- * Generates the kontrollrapport for BDOK100
- *
- */
 @Slf4j
 public class KontrollrapportTasklet implements Tasklet {
 
@@ -57,9 +55,9 @@ public class KontrollrapportTasklet implements Tasklet {
 	}
 
 	private String getKontrollrapportPath(ChunkContext chunkContext) {
-		String outputLocation = (String) chunkContext.getStepContext().getJobExecutionContext().get(OUTPUT_FILE_LOCATION_KEY);
+		Path outputLocation = (Path) chunkContext.getStepContext().getJobExecutionContext().get(OUTPUT_FILE_LOCATION_KEY);
 		Date startTime = (Date) chunkContext.getStepContext().getJobExecutionContext().get(START_TIME_KEY);
-		return outputLocation + "/" + getKontrollrapport(startTime);
+		return outputLocation.toString() + "/" + getKontrollrapport(startTime);
 	}
 
 }
