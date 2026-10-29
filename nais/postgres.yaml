@@ -1,0 +1,10 @@
+version: v1
+type: Postgres
+name: dokprodinfotrygdbrev
+spec:
+  majorVersion: "18"
+  highAvailability: false
+  resources:
+    cpu: 10m
+    memory: 512Mi
+    diskSize: 1Gi

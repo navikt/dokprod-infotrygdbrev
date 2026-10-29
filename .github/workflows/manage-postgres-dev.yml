@@ -1,0 +1,19 @@
+name: Deploy Nais resources (dev-gcp)
+on:
+  push:
+    branches: [main]
+    paths:
+      - "nais/**"
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: nais/setup@v1
+        with:
+          team: teamdokumenthandtering
+      - name: Apply Postgres
+        run: nais apply nais/postgres.yaml --environment dev-gcp
