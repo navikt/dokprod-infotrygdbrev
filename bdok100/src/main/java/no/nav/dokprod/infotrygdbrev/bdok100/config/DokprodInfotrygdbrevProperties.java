@@ -17,6 +17,7 @@ import java.time.Duration;
 public record DokprodInfotrygdbrevProperties(@Valid @NotNull Endpoints endpoints,
 											 @Valid @NotNull JmsProperties qdok001,
 											 @Valid @NotNull SftpProperties sftp,
+											 boolean resetStartedJobs,
 											 @Positive int workUnit,
 											 @Positive int maxFailures) {
 

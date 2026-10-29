@@ -2,6 +2,7 @@ package no.nav.dokprod.infotrygdbrev.sftp;
 
 import no.nav.dokprod.infotrygdbrev.batch.Bdok100JobService;
 import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
+import no.nav.dokprod.infotrygdbrev.bdok100.config.DokprodInfotrygdbrevProperties;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,6 +42,7 @@ public class SftpBatchServiceTest {
 
 	private final SftpFileService sftpFileService = mock(SftpFileService.class);
 	private final SftpToLocalFileStagingService stagingService = mock(SftpToLocalFileStagingService.class);
+	private final DokprodInfotrygdbrevProperties properties = mock(DokprodInfotrygdbrevProperties.class);
 	private final Bdok100JobService jobService = mock(Bdok100JobService.class);
 	private Bdok100BatchParameters batchParameters;
 	private SftpBatchService service;
@@ -59,7 +61,7 @@ public class SftpBatchServiceTest {
 				root.resolve("behandlet"),
 				2,
 				10);
-		service = new SftpBatchService(sftpFileService, stagingService, jobService, batchParameters);
+		service = new SftpBatchService(sftpFileService, stagingService, properties, jobService, batchParameters);
 	}
 
 	@Test
