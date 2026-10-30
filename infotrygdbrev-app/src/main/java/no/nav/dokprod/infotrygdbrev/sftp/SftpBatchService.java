@@ -72,11 +72,12 @@ public class SftpBatchService {
 				.peek(filename -> log.info("bdok100 Deleting previous batch claim {}", filename))
 				.forEach(sftpFileService::deleteFile);
 			log.info("bdok100 resetStartedJobs=true, will not process any files");
-		}
-		var previousStartedMarker = remoteFiles.stream().filter(fileName -> fileName.startsWith(STARTED_FILE_PREFIX)).findAny();
-		if (previousStartedMarker.isPresent()) {
-			log.error("bdok100 aborted! A previous job has already claimed this round, marker: {}", previousStartedMarker.get());
-			return Optional.empty();
+		} else {
+			var previousStartedMarker = remoteFiles.stream().filter(fileName -> fileName.startsWith(STARTED_FILE_PREFIX)).findAny();
+			if (previousStartedMarker.isPresent()) {
+				log.error("bdok100 aborted! A previous job has already claimed this round, marker: {}", previousStartedMarker.get());
+				return Optional.empty();
+			}
 		}
 
 		stageFiles(remoteFiles);
