@@ -6,7 +6,6 @@ import static no.nav.dokprod.infotrygdbrev.common.BDOKCommonBatchInputParameters
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.dokprod.infotrygdbrev.common.StatusChecker;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.JobParameter;
 import org.springframework.data.jpa.repository.JpaRepository;

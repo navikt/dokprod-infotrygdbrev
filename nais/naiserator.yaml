@@ -26,11 +26,11 @@ spec:
               -XX:MaxRAMPercentage=75
               $(JAVA_TRUSTSTORE_OPTIONS)"
     - name: DOKPROD_INFOTRYGDBREV_ENDPOINTS_PDL_URL
-      value: {{ ENDPOINTS_PDL_URL }}
+      value: "https://{{ ENDPOINTS_PDL_HOST }}/graphql"
     - name: DOKPROD_INFOTRYGDBREV_ENDPOINTS_PDL_SCOPE
       value: {{ ENDPOINTS_PDL_SCOPE }}
     - name: DOKPROD_INFOTRYGDBREV_ENDPOINTS_SAK_URL
-      value: {{ ENDPOINTS_SAK_URL }}
+      value: "https://{{ ENDPOINTS_SAK_HOST }}/api/v1/saker"
     - name: DOKPROD_INFOTRYGDBREV_ENDPOINTS_SAK_SCOPE
       value: {{ ENDPOINTS_SAK_SCOPE }}
     - name: DOKPROD_INFOTRYGDBREV_QDOK001_HOSTNAME
@@ -98,6 +98,8 @@ spec:
         - host: {{ SFTP_HOST }}
           ports:
               - port: {{ SFTP_PORT }}
+        - host: {{ ENDPOINTS_PDL_HOST }}
+        - host: {{ ENDPOINTS_SAK_HOST }}
   azure:
     application:
       enabled: true
