@@ -62,7 +62,7 @@ public class Bdok100StatusCheckerTest {
 	@Test
 	public void shouldNotReportWarningIfBehandletNoneOnCleanRun() throws Exception {
 		JobParameters jobParameters = new JobParametersBuilder()
-				.addString(CLEAN_KEY, "true")
+				.addJobParameter(CLEAN_KEY, true, Boolean.class)
 				.toJobParameters();
 		jobExecution = new JobExecution(1L, new JobInstance(1L, "test"), jobParameters);
 		setUpExecutionContext();

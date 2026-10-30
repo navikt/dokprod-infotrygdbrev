@@ -4,7 +4,6 @@ import no.nav.dokprod.infotrygdbrev.bdok100.Bdok100Constants;
 import no.nav.dokprod.infotrygdbrev.bdok100.support.to.NAVKontors;
 import no.nav.dokprod.infotrygdbrev.bdok100.support.to.VedleggsLister;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -84,8 +83,9 @@ public class InputValidationStepConfiguration extends AbstractBdok100StepConfig 
 		public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 			ExecutionContext executionContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
 
-			boolean cleanOnly = BooleanUtils.isTrue((Boolean) executionContext.get(CLEAN_KEY));
-			if (cleanOnly) {
+			Boolean cleanOnly = (Boolean) executionContext.get(CLEAN_KEY);
+
+			if (cleanOnly != null && cleanOnly) {
 				return RepeatStatus.FINISHED;
 			}
 

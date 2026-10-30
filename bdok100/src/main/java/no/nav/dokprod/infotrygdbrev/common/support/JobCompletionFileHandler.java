@@ -6,8 +6,8 @@ import no.nav.brevogarkiv.batch.common.CommonBatchInputParameters;
 import no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper;
 import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
 import no.nav.dokprod.infotrygdbrev.common.BDOKCommonBatchInputParameters;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameter;
 import org.springframework.batch.core.listener.JobExecutionListener;
 
 import java.io.IOException;
@@ -49,8 +49,9 @@ public class JobCompletionFileHandler implements JobExecutionListener {
 			return;
 		}
 
-		String cleanOnly = jobExecution.getJobParameters().getString(BDOKCommonBatchInputParameters.CLEAN_KEY, "false");
-		if (BooleanUtils.toBoolean(cleanOnly)) {
+		JobParameter<Boolean> cleanKeyParameter = (JobParameter<Boolean>) jobExecution.getJobParameters().getParameter(BDOKCommonBatchInputParameters.CLEAN_KEY);
+		Boolean cleanOnly = cleanKeyParameter != null && cleanKeyParameter.value();
+		if (cleanOnly) {
 			return;
 		}
 		switch (jobExecution.getExitStatus().getExitCode()) {
