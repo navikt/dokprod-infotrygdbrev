@@ -2,7 +2,6 @@ package no.nav.dokprod.infotrygdbrev.bdok100.support.itest;
 
 import com.google.common.collect.Lists;
 import jakarta.xml.bind.JAXBElement;
-import no.nav.brevogarkiv.batch.common.CommonBatchInputParameters;
 import no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100ArbTbl;
 import no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100Status;
 import no.nav.dokprod.infotrygdbrev.bdok100.support.mappers.ProduserIkkeRedigerbartDokumentXmlMapperTest;
@@ -341,7 +340,7 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 	public void shouldRunCleanOnly() throws Exception {
 		bdok100Repo.save(ProduserIkkeRedigerbartDokumentXmlMapperTest.createArbeidstabellRow());
 
-		JobParameters parameters = parameterBuilder().addString(BDOKCommonBatchInputParameters.CLEAN_KEY, "true")
+		JobParameters parameters = parameterBuilder().addJobParameter(BDOKCommonBatchInputParameters.CLEAN_KEY, true, Boolean.class)
 				.toJobParameters();
 		JobExecution jobExecution = launchJob(parameters);
 

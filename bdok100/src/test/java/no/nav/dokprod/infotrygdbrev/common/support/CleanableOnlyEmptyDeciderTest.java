@@ -67,7 +67,7 @@ public class CleanableOnlyEmptyDeciderTest {
 
 	@Test
 	public void shouldDecideCleanIfParameterClean() throws Exception {
-		FlowExecutionStatus decide = cleanableOnlyEmptyDecider.decide(new JobExecution(1L, new JobInstance(1L, "test"), new JobParameters(Set.of(new JobParameter<>(CLEAN_KEY, "true", String.class)))), null);
+		FlowExecutionStatus decide = cleanableOnlyEmptyDecider.decide(new JobExecution(1L, new JobInstance(1L, "test"), new JobParameters(Set.of(new JobParameter<>(CLEAN_KEY, true, Boolean.class)))), null);
 
 		assertThat(decide, is(CleanableOnlyEmptyDecider.CLEAN));
 	}
