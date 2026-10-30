@@ -38,7 +38,7 @@
 		<jettison.version>1.5.7</jettison.version>
 		<joda-time.version>2.15.0</joda-time.version>
 
-		<ibm-mq-jakarta-client.version>10.0.0.5</ibm-mq-jakarta-client.version>
+		<ibm-mq-jakarta-client.version>10.0.1.0</ibm-mq-jakarta-client.version>
 		<bouncycastle.version>1.85</bouncycastle.version>
 
 		<maven-toolchains-plugin.version>3.3.0</maven-toolchains-plugin.version>
