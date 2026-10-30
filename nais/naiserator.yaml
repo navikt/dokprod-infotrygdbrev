@@ -98,6 +98,8 @@ spec:
         - host: {{ SFTP_HOST }}
           ports:
               - port: {{ SFTP_PORT }}
+        - host: {{ ENDPOINTS_PDL_HOST }}
+        - host: {{ ENDPOINTS_SAK_HOST }}
   azure:
     application:
       enabled: true
