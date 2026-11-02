@@ -74,8 +74,8 @@ public class PdlGraphQLConsumer implements PdlConsumer {
 				.executeSync();
 
             if(graphQlResponse.getErrors().isEmpty()) {
-				PdlResponseTo pdlResponseTo = graphQlResponse.toEntity(PdlResponseTo.class);
-                return pdlResponseTo.getData().getHentIdenter().getIdenter().get(0).getIdent();
+				PdlHentIdenterTo pdlResponseTo = graphQlResponse.toEntity(PdlHentIdenterTo.class);
+                return pdlResponseTo.getHentIdenter().getIdenter().get(0).getIdent();
             } else {
                 throw new PdlFunctionalException("Kunne ikke hente identer for ident i pdl. " + graphQlResponse.getErrors());
             }
