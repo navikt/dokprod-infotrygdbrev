@@ -5,6 +5,6 @@ spec:
   majorVersion: "18"
   highAvailability: false
   resources:
-    cpu: 10m
+    cpu: 20m
     memory: 512Mi
     diskSize: 1Gi
