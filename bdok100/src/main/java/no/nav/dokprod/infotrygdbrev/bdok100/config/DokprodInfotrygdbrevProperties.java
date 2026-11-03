@@ -17,6 +17,7 @@ import java.time.Duration;
 public record DokprodInfotrygdbrevProperties(@Valid @NotNull Endpoints endpoints,
 											 @Valid @NotNull JmsProperties qdok001,
 											 @Valid @NotNull SftpProperties sftp,
+											 @Valid @NotNull ServiceUser serviceuser,
 											 boolean resetStartedJobs,
 											 @Positive int workUnit,
 											 @Positive int maxFailures) {
@@ -57,9 +58,18 @@ public record DokprodInfotrygdbrevProperties(@Valid @NotNull Endpoints endpoints
 
 		@Override
 		public String toString() {
-			return "SftpProperties[host=%s, port=%d, username=%s, privateKeyFile=%s, privateKeyPassphrase=********, "
-				.concat("knownHostsFile=%s, remoteDirectory=%s, timeout=%s]")
+			return "SftpProperties[host=%s, port=%d, username=%s, privateKeyFile=%s, privateKeyPassphrase=********, knownHostsFile=%s, remoteDirectory=%s, timeout=%s]"
 				.formatted(host, port, username, privateKeyFile, knownHostsFile, remoteDirectory, timeout);
+		}
+	}
+
+	public record ServiceUser(
+		@NotBlank String username,
+		@NotBlank String password
+	) {
+		@Override
+		public String toString() {
+			return "ServiceUser[username=%s, password=********]".formatted(username);
 		}
 	}
 }
