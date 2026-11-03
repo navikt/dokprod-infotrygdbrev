@@ -25,8 +25,7 @@ public class VedleggsListe {
 	@Pattern(regexp = "^\\w{4}$")
 	private String brevkode;
 
-	@Valid
-	private List<Vedlegg> vedleggs = new ArrayList<>();
+	private List<@Valid Vedlegg> vedleggs = new ArrayList<>();
 
 	public VedleggsListe addVedlegg(String vedleggsKode) {
 		vedleggs.add(new Vedlegg(vedleggsKode));
