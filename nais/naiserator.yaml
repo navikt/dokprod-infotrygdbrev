@@ -26,6 +26,7 @@ spec:
               -Dcom.ibm.mq.cfg.TCP.ClntSndBuffSize=32768
               -Dcom.ibm.mq.cfg.TCP.ClntRcvBuffSize=32768
               -Dcom.ibm.msg.client.commonservices.log.outputName=System.out
+              -Djdk.tls.namedGroups=secp256r1,secp384r1,x25519
               -XX:MaxRAMPercentage=75
               $(JAVA_TRUSTSTORE_OPTIONS)"
     - name: DOKPROD_INFOTRYGDBREV_ENDPOINTS_PDL_URL
