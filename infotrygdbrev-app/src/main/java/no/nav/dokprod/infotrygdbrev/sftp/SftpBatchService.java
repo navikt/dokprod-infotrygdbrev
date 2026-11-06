@@ -4,10 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import no.nav.dokprod.infotrygdbrev.batch.Bdok100JobService;
 import no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper;
 import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
+import no.nav.dokprod.infotrygdbrev.bdok100.config.DokprodInfotrygdbrevProperties;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.JobExecutionException;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +21,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.START_TIME_KEY;
+import static no.nav.dokprod.infotrygdbrev.common.BDOKCommonBatchInputParameters.CLEAN_KEY;
 
 @Slf4j
 @Service
@@ -32,10 +35,12 @@ public class SftpBatchService {
 	private final SftpToLocalFileStagingService stagingService;
 	private final Bdok100JobService jobService;
 	private final Bdok100BatchParameters batchParameters;
+	private final DokprodInfotrygdbrevProperties dokprodInfotrygdbrevProperties;
 
 	public SftpBatchService(
 			SftpFileService sftpFileService,
 			SftpToLocalFileStagingService stagingService,
+			DokprodInfotrygdbrevProperties dokprodInfotrygdbrevProperties,
 			Bdok100JobService jobService,
 			Bdok100BatchParameters batchParameters
 	) {
@@ -43,11 +48,13 @@ public class SftpBatchService {
 		this.stagingService = stagingService;
 		this.jobService = jobService;
 		this.batchParameters = batchParameters;
+		this.dokprodInfotrygdbrevProperties = dokprodInfotrygdbrevProperties;
 	}
 
 	@Scheduled(cron = "${dokprod.infotrygdbrev.batch.cron}")
 	public Optional<JobExecution> startBatchIfReady() throws JobExecutionException {
 		Set<String> remoteFiles = sftpFileService.listFiles();
+		log.debug("bdok100 found files. files: {}", remoteFiles);
 		if (!remoteFiles.contains(READY_FILE_NAME)) {
 			if (!remoteFiles.isEmpty()) {
 				log.debug("bdok100 found files, but no ready-marker. files: {}", remoteFiles);
@@ -59,10 +66,18 @@ public class SftpBatchService {
 			}
 			return Optional.empty();
 		}
-		var previousStartedMarker = remoteFiles.stream().filter(fileName -> fileName.startsWith(STARTED_FILE_PREFIX)).findAny();
-		if (previousStartedMarker.isPresent()) {
-			log.error("bdok100 aborted! A previous job has already claimed this round, marker: {}", previousStartedMarker.get());
-			return Optional.empty();
+		if (dokprodInfotrygdbrevProperties.resetStartedJobs()) {
+			remoteFiles.stream()
+				.filter(fileName -> fileName.startsWith(STARTED_FILE_PREFIX))
+				.peek(filename -> log.info("bdok100 Deleting previous batch claim {}", filename))
+				.forEach(sftpFileService::deleteFile);
+			log.info("bdok100 resetStartedJobs=true, will not process any files");
+		} else {
+			var previousStartedMarker = remoteFiles.stream().filter(fileName -> fileName.startsWith(STARTED_FILE_PREFIX)).findAny();
+			if (previousStartedMarker.isPresent()) {
+				log.error("bdok100 aborted! A previous job has already claimed this round, marker: {}", previousStartedMarker.get());
+				return Optional.empty();
+			}
 		}
 
 		stageFiles(remoteFiles);
@@ -73,6 +88,7 @@ public class SftpBatchService {
 		JobExecution jobExecution = jobService.start(
 				new JobParametersBuilder()
 						.addDate(START_TIME_KEY, startTime)
+						.addJobParameter(CLEAN_KEY, dokprodInfotrygdbrevProperties.resetStartedJobs(), Boolean.class)
 						.toJobParameters());
 		if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
 			sftpFileService.deleteFile(startedFileName);

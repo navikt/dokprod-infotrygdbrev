@@ -53,7 +53,6 @@ public class SakRestConsumer implements SakConsumer {
 				.header(HEADER_SAK_CORRELATION_ID, UUID.randomUUID().toString())
 				.attribute(TARGET_SCOPE, sakTargetScope)
 				.retrieve()
-				// errrorhandling?
 				.body(new ParameterizedTypeReference<>() {
 				});
             if (sakerDto == null || sakerDto.isEmpty()) {
@@ -62,6 +61,9 @@ public class SakRestConsumer implements SakConsumer {
                 return sakerDto.getFirst().getId();
             }
         } catch (HttpClientErrorException e) {
+			if (e.getStatusCode().isSameCodeAs(NOT_FOUND)) {
+				return null;
+			}
             throw new SakFunctionalException("Kunne ikke finne sak=" + to + ", status=" + e.getStatusCode(), e);
         }
     }

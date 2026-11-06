@@ -27,7 +27,7 @@ public class Bdok100JmsWriter extends JmsItemWriter<ProduserIkkeRedigerbartDokum
 			// Vi gjør dette som hotfix slik at statusoppdatering i arbeidstabell blir riktig. (se commit)
 			writeOriginalBestillingsIdBack(items, originalBestillingsIds);
 		} catch (JmsException e) {
-			log.error(String.format("Kunne ikke skrive brevbestillinger på kø til QDOK001. Feilmelding=%s", e.getMessage()));
+			log.error(String.format("Kunne ikke skrive brevbestillinger på kø til QDOK001. Feilmelding=%s", e.getMessage()), e);
 			throw e;
 		}
 		log.info(String.format("Har lagt til %s brevbestillinger på kø til QDOK001", items.size()));

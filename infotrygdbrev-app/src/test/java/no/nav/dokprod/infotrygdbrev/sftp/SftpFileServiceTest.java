@@ -48,6 +48,8 @@ public class SftpFileServiceTest {
 						"known-hosts",
 						REMOTE_DIRECTORY,
 						Duration.ofSeconds(30)),
+						new DokprodInfotrygdbrevProperties.ServiceUser("", ""),
+				false,
 				2,
 				10);
 		service = new SftpFileService(remoteFileTemplate, properties);

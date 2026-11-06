@@ -6,14 +6,8 @@ import lombok.ToString;
 import java.util.List;
 
 @Data
-public class PdlResponseTo {
-    private PdlHentIdenterTo data;
-    private List<PdlErrorTo> errors;
-
-    @Data
-    public static class PdlHentIdenterTo {
-        private PdlIdenterTo hentIdenter;
-    }
+public class PdlHentIdenterTo {
+	private PdlIdenterTo hentIdenter;
 
     @Data
     public static class PdlIdenterTo {
@@ -38,7 +32,15 @@ public class PdlResponseTo {
     public static class PdlErrorExtensionTo {
         private String code;
         private String classification;
-    }
+		private Details details;
+	}
+
+	@Data
+	public static class Details {
+		private String type;
+		private String cause;
+		private String policy;
+	}
 
     public enum PdlGruppe {
         FOLKEREGISTERIDENT, AKTORID, NPID;

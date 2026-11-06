@@ -107,7 +107,7 @@ public class BatchStatusReportLoggerListener implements JobExecutionListener, In
 		sb.append("\nTotal execution time: ").append(
 				formatMillisecondsDurationAsHumanReadableString(Duration.between(jobExecution.getStartTime(), jobExecution.getEndTime())));
 		sb.append("\nHost: ").append(getHostNameAndIp());
-		sb.append("\nDB Schema: ").append(getCurrentSchema() + "\n");
+		sb.append("\n");
 		sb.append("\n");
 		sb.append("\n");
 		sb.append("+====================================================================== Spring Job Execution Summary ===============================================================================================+\n");
@@ -170,7 +170,6 @@ public class BatchStatusReportLoggerListener implements JobExecutionListener, In
 		sb.append("Start time: " + jobExecution.getStartTime() + "\n");
 		sb.append("Job parameters:").append(jobExecution.getJobParameters().parameters().toString() + "\n");
 		sb.append("Host: ").append(getHostNameAndIp() + "\n");
-		sb.append("DB Schema: ").append(getCurrentSchema() + "\n");
 
 		sb.append("=======================================================================================================================\n");
 
@@ -208,22 +207,6 @@ public class BatchStatusReportLoggerListener implements JobExecutionListener, In
 		}
 		return myIp;
 
-	}
-
-	private String getCurrentSchema() {
-		String currentSchema = "UNKNOWN";
-		String currentSchemaSql = null;
-		try {
-			String dataBaseName = DatabaseType.fromMetaData(dataSource).name();
-			currentSchemaSql = dbTypeToSql.get(dataBaseName);
-		} catch (MetaDataAccessException e) {
-		}
-
-		if (currentSchemaSql != null) {
-			currentSchema = (String) jdbcTemplate.queryForObject(currentSchemaSql, String.class);
-		}
-
-		return currentSchema;
 	}
 
 	/**

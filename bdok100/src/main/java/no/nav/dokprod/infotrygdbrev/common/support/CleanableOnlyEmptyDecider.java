@@ -2,10 +2,10 @@ package no.nav.dokprod.infotrygdbrev.common.support;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.dokprod.infotrygdbrev.common.BDOKCommonBatchInputParameters;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.flow.FlowExecutionStatus;
 import org.springframework.batch.core.job.flow.JobExecutionDecider;
+import org.springframework.batch.core.job.parameters.JobParameter;
 import org.springframework.batch.core.repository.explore.JobExplorer;
 import org.springframework.batch.core.step.StepExecution;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,9 +25,10 @@ public class CleanableOnlyEmptyDecider implements JobExecutionDecider {
 
 	@Override
 	public FlowExecutionStatus decide(JobExecution jobExecution, StepExecution stepExecution) {
-		String cleanOnly = jobExecution.getJobParameters().getString(BDOKCommonBatchInputParameters.CLEAN_KEY, "false");
+		JobParameter<Boolean> cleanKeyParameter = (JobParameter<Boolean>) jobExecution.getJobParameters().getParameter(BDOKCommonBatchInputParameters.CLEAN_KEY);
+		boolean cleanOnly = cleanKeyParameter != null && cleanKeyParameter.value();
 
-		if (BooleanUtils.toBoolean(cleanOnly)) {
+		if (cleanOnly) {
 			return CLEAN;
 		}
 
