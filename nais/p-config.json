@@ -11,7 +11,7 @@
   "ENDPOINTS_SAK_SCOPE": "api://prod-fss.teamdokumenthandtering.sak/.default",
   "SFTP_HOST": "filmottak.adeo.no",
   "SFTP_PORT": "22",
-  "QDOK001_CHANNEL_SECURENAME": "P_DOKPRODBATCH_SSL",
+  "QDOK001_CHANNEL_SECURENAME": "P_DOKPROD_INFOTRYGD",
   "QDOK001_HOSTNAME": "mpls01.adeo.no",
   "QDOK001_PORT": "1414",
   "QDOK001_QUEUE_MANAGER": "MPLS01",
