@@ -8,7 +8,6 @@ import no.nav.dokprod.infotrygdbrev.bdok100.support.AsyncSakConsumer;
 import no.nav.dokprod.infotrygdbrev.common.ExitStatusJobExecutionListener;
 import no.nav.dokprod.infotrygdbrev.common.UserIdMdcJobExecutionListener;
 import no.nav.dokprod.infotrygdbrev.common.support.InputDirectoryValidationTasklet;
-import no.nav.dokprod.infotrygdbrev.common.support.JobCompletionFileHandler;
 import no.nav.dokprod.infotrygdbrev.consumer.SakService;
 import no.nav.dokprod.infotrygdbrev.serializer.ConverterCapableXStreamExecutionContextStringSerializer;
 import no.nav.dokprod.infotrygdbrev.serializer.LocalDateConverter;
@@ -144,8 +143,4 @@ public class BatchCommonConfig implements AsyncConfigurer {
 		return new MaxFailuresChunkListener(bdok100BatchParameters.maxFailures());
 	}
 
-	@Bean
-	public JobCompletionFileHandler jobCompletionFileHandler(Bdok100BatchParameters bdok100BatchParameters) {
-		return new JobCompletionFileHandler(bdok100BatchParameters);
-	}
 }

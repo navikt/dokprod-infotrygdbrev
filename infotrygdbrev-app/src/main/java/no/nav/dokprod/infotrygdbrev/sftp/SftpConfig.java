@@ -1,6 +1,8 @@
 package no.nav.dokprod.infotrygdbrev.sftp;
 
 import no.nav.dokprod.infotrygdbrev.bdok100.config.DokprodInfotrygdbrevProperties;
+import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
+import no.nav.dokprod.infotrygdbrev.common.support.JobCompletionFileHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
@@ -9,6 +11,12 @@ import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 
 @Configuration
 public class SftpConfig {
+
+	@Bean
+	JobCompletionFileHandler jobCompletionFileHandler(SftpFileService sftpFileService,
+													  Bdok100BatchParameters batchParameters) {
+		return new JobCompletionFileHandler(sftpFileService, batchParameters);
+	}
 
 	@Bean
 	DefaultSftpSessionFactory sftpSessionFactory(DokprodInfotrygdbrevProperties dokprodInfotrygdbrevProperties) {

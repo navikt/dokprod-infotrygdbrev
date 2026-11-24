@@ -1,137 +1,208 @@
 package no.nav.dokprod.infotrygdbrev.common.support;
 
-import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.formatDateToSeconds;
-import static org.junit.Assert.assertTrue;
-
-import com.google.common.collect.Lists;
-import no.nav.brevogarkiv.batch.common.CommonBatchInputParameters;
-import no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper;
 import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
-import no.nav.dokprod.infotrygdbrev.util.NavExitStatus;
-import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.JobInstance;
+import org.springframework.batch.core.job.parameters.JobParameter;
 import org.springframework.batch.core.job.parameters.JobParameters;
-import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.batch.core.step.StepExecution;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
-/**
- * Unit test for {@link JobCompletionFileHandler}
- *
- */
+import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.START_TIME_KEY;
+import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.JOURNALDATA_CSV;
+import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.LINJEDATA_TXT;
+import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.KONTOR_CSV;
+import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.VEDLEGG_CSV;
+import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.formatDateToSeconds;
+import static no.nav.dokprod.infotrygdbrev.common.BDOKCommonBatchInputParameters.CLEAN_KEY;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doThrow;
+
 public class JobCompletionFileHandlerTest {
 
-	private static final String JOB_NAME = "TESTJOB";
-	private static final Date START_TIME = new Date();
-	private static final String BEHANDLET_SUBFOLDER = JOB_NAME.toLowerCase() + "-behandlet-" + formatDateToSeconds(START_TIME);
-	private static final String FAILED_SUBFOLDER = JOB_NAME.toLowerCase() + "-failed-" + formatDateToSeconds(START_TIME);
+	private final PostRunFileTransfer fileTransfer = mock(PostRunFileTransfer.class);
+	private Bdok100BatchParameters batchParameters;
+	private JobCompletionFileHandler handler;
 
 	@Rule
 	public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-	private JobCompletionFileHandler jobCompletionFileHandler;
-	private JobExecution jobExecution;
-
-	private Path in;
-	private Path behandlet;
-	private Path failed;
-
 	@Before
-	public void setUp() throws Exception {
-		in = temporaryFolder.newFolder("ok").toPath();
-		Files.createFile(in.resolve(FilenameHelper.JOURNALDATA_CSV));
-		Files.createFile(in.resolve(FilenameHelper.LINJEDATA_TXT));
-
-		behandlet = temporaryFolder.newFolder("behandlet").toPath();
-		failed = temporaryFolder.newFolder("failed").toPath();
-		JobParameters parameters = new JobParametersBuilder().toJobParameters();
-
-		jobExecution = new JobExecution(1L, new JobInstance(1L, JOB_NAME), parameters);
-		jobExecution.getExecutionContext().put(CommonBatchInputParameters.START_TIME_KEY, START_TIME);
-		jobCompletionFileHandler = new JobCompletionFileHandler(
-			new Bdok100BatchParameters(in, null, null, failed, behandlet, 0, 0));
+	public void setUp() {
+		Path root = temporaryFolder.getRoot().toPath();
+		batchParameters = new Bdok100BatchParameters(
+			root.resolve("input"),
+			root.resolve("static"),
+			root.resolve("output"),
+			root.resolve("failed"),
+			root.resolve("behandlet"),
+			2,
+			10);
+		handler = new JobCompletionFileHandler(fileTransfer, batchParameters);
 	}
 
 	@Test
-	public void shouldMoveFilesToBehandletOnCompleted() throws Exception {
-		addSteps();
+	public void shouldMoveAndUploadToBehandletWhenCompleted() throws Exception {
+		var output = batchParameters.outputFileLocation();
+		Files.createDirectories(output);
+		Files.writeString(output.resolve("result.txt"), "data");
+		Files.createDirectories(batchParameters.inputFileLocation());
+		Files.writeString(batchParameters.inputFileLocation().resolve(JOURNALDATA_CSV), "journal");
+		Files.writeString(batchParameters.inputFileLocation().resolve(LINJEDATA_TXT), "linje");
+		Files.createDirectories(batchParameters.staticInputFileLocation());
+		Files.writeString(batchParameters.staticInputFileLocation().resolve(KONTOR_CSV), "kontor");
+		Files.writeString(batchParameters.staticInputFileLocation().resolve(VEDLEGG_CSV), "vedlegg");
+		JobExecution jobExecution = new JobExecution(1L, new JobInstance(1L, "BDOK100"), new JobParameters());
 		jobExecution.setExitStatus(ExitStatus.COMPLETED);
-		jobCompletionFileHandler.afterJob(jobExecution);
+		ExecutionContext context = jobExecution.getExecutionContext();
+		context.put(START_TIME_KEY, new Date(0));
+		addProcessedSteps(jobExecution);
 
-		assertTrue(Files.exists(behandlet.resolve(BEHANDLET_SUBFOLDER).resolve(FilenameHelper.JOURNALDATA_CSV)));
-		assertTrue(Files.exists(behandlet.resolve(BEHANDLET_SUBFOLDER).resolve(FilenameHelper.LINJEDATA_TXT)));
-		assertTrue(ArrayUtils.isEmpty(failed.toFile().list()));
+		handler.afterJob(jobExecution);
+
+		String archive = "behandlet/bdok100-behandlet-" + formatDateToSeconds(new Date(0));
+		verify(fileTransfer).moveFileIfExists(JOURNALDATA_CSV, archive + "/" + JOURNALDATA_CSV);
+		verify(fileTransfer).moveFileIfExists(LINJEDATA_TXT, archive + "/" + LINJEDATA_TXT);
+		verify(fileTransfer).uploadFile(output.resolve("result.txt"), "output/result.txt");
+		assertFalse(Files.exists(output.resolve("result.txt")));
+		assertFalse(Files.exists(batchParameters.inputFileLocation().resolve(JOURNALDATA_CSV)));
+		assertFalse(Files.exists(batchParameters.inputFileLocation().resolve(LINJEDATA_TXT)));
+		assertFalse(Files.exists(batchParameters.staticInputFileLocation().resolve(KONTOR_CSV)));
+		assertFalse(Files.exists(batchParameters.staticInputFileLocation().resolve(VEDLEGG_CSV)));
 	}
 
 	@Test
-	public void shouldMoveFilesToBehandletOnWarning() throws Exception {
-		addSteps();
-		jobExecution.setExitStatus(NavExitStatus.WARNING);
-		jobCompletionFileHandler.afterJob(jobExecution);
-
-		assertTrue(Files.exists(behandlet.resolve(BEHANDLET_SUBFOLDER).resolve(FilenameHelper.JOURNALDATA_CSV)));
-		assertTrue(Files.exists(behandlet.resolve(BEHANDLET_SUBFOLDER).resolve(FilenameHelper.LINJEDATA_TXT)));
-		assertTrue(ArrayUtils.isEmpty(failed.toFile().list()));
-	}
-
-	@Test
-	public void shouldNotMoveIfOnlyOneStepExecuted() throws Exception {
+	public void shouldKeepLocalFilesIfUploadFails() throws Exception {
+		Path output = batchParameters.outputFileLocation();
+		Files.createDirectories(output);
+		Path result = output.resolve("result.txt");
+		Files.writeString(result, "data");
+		JobExecution jobExecution = new JobExecution(1L, new JobInstance(1L, "BDOK100"), new JobParameters());
 		jobExecution.setExitStatus(ExitStatus.COMPLETED);
-		jobExecution.addStepExecutions(Lists.newArrayList(new StepExecution(0L, "validationStep", jobExecution)));
-		jobCompletionFileHandler.afterJob(jobExecution);
+		jobExecution.getExecutionContext().put(START_TIME_KEY, new Date(0));
+		addProcessedSteps(jobExecution);
+		doThrow(new IllegalStateException("upload failed")).when(fileTransfer).uploadFile(eq(result), any(String.class));
 
-		assertTrue(Files.exists(in.resolve(FilenameHelper.JOURNALDATA_CSV)));
-		assertTrue(Files.exists(in.resolve(FilenameHelper.LINJEDATA_TXT)));
-		assertTrue(ArrayUtils.isEmpty(failed.toFile().list()));
-		assertTrue(ArrayUtils.isEmpty(behandlet.toFile().list()));
+		assertThrows(IllegalStateException.class, () -> handler.afterJob(jobExecution));
+
+		assertTrue(Files.exists(result));
+		assertTrue(jobExecution.getStatus() == BatchStatus.FAILED);
+		assertTrue(jobExecution.getExitStatus().getExitCode().equals(ExitStatus.FAILED.getExitCode()));
+		assertFalse(jobExecution.getFailureExceptions().isEmpty());
 	}
 
 	@Test
-	public void shouldNotMoveIfStopped() throws Exception {
-		addSteps();
-		jobExecution.setExitStatus(ExitStatus.STOPPED);
-		jobCompletionFileHandler.afterJob(jobExecution);
+	public void shouldUseBehandletOnWarning() {
+		JobExecution jobExecution = new JobExecution(1L, new JobInstance(1L, "BDOK100"), new JobParameters());
+		jobExecution.setExitStatus(new ExitStatus("WARNING"));
+		jobExecution.getExecutionContext().put(START_TIME_KEY, new Date(0));
+		addProcessedSteps(jobExecution);
 
-		assertTrue(Files.exists(in.resolve(FilenameHelper.JOURNALDATA_CSV)));
-		assertTrue(Files.exists(in.resolve(FilenameHelper.LINJEDATA_TXT)));
-		assertTrue(ArrayUtils.isEmpty(failed.toFile().list()));
-		assertTrue(ArrayUtils.isEmpty(behandlet.toFile().list()));
+		handler.afterJob(jobExecution);
+
+		verify(fileTransfer).moveFileIfExists(eq(JOURNALDATA_CSV), contains("behandlet/"));
 	}
 
 	@Test
-	public void shouldMoveFilesToFailedOtherwiseError() throws Exception {
-		addSteps();
-		jobExecution.setExitStatus(NavExitStatus.ERROR);
-		jobCompletionFileHandler.afterJob(jobExecution);
+	public void shouldUseJobNameInArchiveDirectory() {
+		JobExecution jobExecution = new JobExecution(1L, new JobInstance(1L, "OTHERJOB"), new JobParameters());
+		jobExecution.setExitStatus(ExitStatus.COMPLETED);
+		jobExecution.getExecutionContext().put(START_TIME_KEY, new Date(0));
+		addProcessedSteps(jobExecution);
 
-		assertTrue(Files.exists(failed.resolve(FAILED_SUBFOLDER).resolve(FilenameHelper.JOURNALDATA_CSV)));
-		assertTrue(Files.exists(failed.resolve(FAILED_SUBFOLDER).resolve(FilenameHelper.LINJEDATA_TXT)));
-		assertTrue(ArrayUtils.isEmpty(behandlet.toFile().list()));
+		handler.afterJob(jobExecution);
+
+		verify(fileTransfer).moveFileIfExists(JOURNALDATA_CSV,
+			"behandlet/otherjob-behandlet-" + formatDateToSeconds(new Date(0)) + "/" + JOURNALDATA_CSV);
 	}
 
 	@Test
-	public void shouldMoveFilesToFailedOtherwiseFailed() throws Exception {
-		addSteps();
+	public void shouldHandleFailedJob() throws Exception {
+		Path input = batchParameters.inputFileLocation();
+		Files.createDirectories(input);
+		Files.writeString(input.resolve(JOURNALDATA_CSV), "data");
+		Path output = batchParameters.outputFileLocation();
+		Files.createDirectories(output);
+		Files.writeString(output.resolve("error.txt"), "error");
+		JobExecution jobExecution = new JobExecution(1L, new JobInstance(1L, "BDOK100"), new JobParameters());
+		jobExecution.setStatus(BatchStatus.FAILED);
 		jobExecution.setExitStatus(ExitStatus.FAILED);
-		jobCompletionFileHandler.afterJob(jobExecution);
+		jobExecution.getExecutionContext().put(START_TIME_KEY, new Date(0));
+		addProcessedSteps(jobExecution);
 
-		assertTrue(Files.exists(failed.resolve(FAILED_SUBFOLDER).resolve(FilenameHelper.JOURNALDATA_CSV)));
-		assertTrue(Files.exists(failed.resolve(FAILED_SUBFOLDER).resolve(FilenameHelper.LINJEDATA_TXT)));
-		assertTrue(ArrayUtils.isEmpty(behandlet.toFile().list()));
+		handler.afterJob(jobExecution);
+
+		verify(fileTransfer).moveFileIfExists(JOURNALDATA_CSV, "failed/bdok100-failed-" + formatDateToSeconds(new Date(0)) + "/" + JOURNALDATA_CSV);
+		verify(fileTransfer).uploadFile(output.resolve("error.txt"), "output/error.txt");
+		assertFalse(Files.exists(input.resolve(JOURNALDATA_CSV)));
+		assertFalse(Files.exists(output.resolve("error.txt")));
 	}
 
-	private void addSteps() {
-		jobExecution.addStepExecutions(Lists.newArrayList(
-				new StepExecution(0L, "validationStep", jobExecution),
-				new StepExecution(1L, "readStep", jobExecution)));
+	@Test
+	public void shouldNotFinalizeAfterInputValidationFailure() throws Exception {
+		Path input = batchParameters.inputFileLocation();
+		Files.createDirectories(input);
+		Files.writeString(input.resolve(JOURNALDATA_CSV), "data");
+		JobExecution jobExecution = new JobExecution(1L, new JobInstance(1L, "BDOK100"), new JobParameters());
+		jobExecution.setStatus(BatchStatus.FAILED);
+		jobExecution.setExitStatus(ExitStatus.FAILED);
+		jobExecution.addStepExecutions(List.of(new StepExecution(1L, "inputValidationStep", jobExecution)));
+
+		handler.afterJob(jobExecution);
+
+		assertTrue(Files.exists(input.resolve(JOURNALDATA_CSV)));
+		verify(fileTransfer, never()).moveFileIfExists(any(String.class), any(String.class));
+	}
+
+	@Test
+	public void shouldNotFinalizeStoppedJob() {
+		JobExecution jobExecution = new JobExecution(1L, new JobInstance(1L, "BDOK100"), new JobParameters());
+		jobExecution.setStatus(BatchStatus.STOPPED);
+		jobExecution.setExitStatus(ExitStatus.STOPPED);
+		addProcessedSteps(jobExecution);
+
+		handler.afterJob(jobExecution);
+
+		verify(fileTransfer, never()).moveFileIfExists(any(String.class), any(String.class));
+	}
+
+	@Test
+	public void shouldDoNothingForCleanOnly() {
+		JobParameters params = new JobParameters(Set.of(new JobParameter<>(CLEAN_KEY, true, Boolean.class)));
+		JobExecution jobExecution = new JobExecution(1L, new JobInstance(1L, "BDOK100"), params);
+		jobExecution.setExitStatus(ExitStatus.COMPLETED);
+		jobExecution.getExecutionContext().put(START_TIME_KEY, new Date(0));
+		addProcessedSteps(jobExecution);
+
+		handler.afterJob(jobExecution);
+
+		verify(fileTransfer, never()).moveFileIfExists(any(String.class), any(String.class));
+		verify(fileTransfer, never()).uploadFile(any(Path.class), any(String.class));
+	}
+
+	private void addProcessedSteps(JobExecution jobExecution) {
+		jobExecution.addStepExecutions(List.of(
+			new StepExecution(1L, "inputValidationStep", jobExecution),
+			new StepExecution(2L, "xmlDokumentbestillingWriterStep", jobExecution)));
 	}
 }

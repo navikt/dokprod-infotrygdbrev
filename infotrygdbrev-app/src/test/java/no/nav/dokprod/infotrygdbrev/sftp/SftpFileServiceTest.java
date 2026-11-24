@@ -13,6 +13,8 @@ import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Set;
 
@@ -36,6 +38,10 @@ public class SftpFileServiceTest {
 
 	@Before
 	public void setUp() {
+		service = newService(REMOTE_DIRECTORY);
+	}
+
+	private SftpFileService newService(String remoteDirectory) {
 		DokprodInfotrygdbrevProperties properties = new DokprodInfotrygdbrevProperties(
 				null,
 				null,
@@ -46,13 +52,13 @@ public class SftpFileServiceTest {
 						"private-key",
 						"",
 						"known-hosts",
-						REMOTE_DIRECTORY,
+						remoteDirectory,
 						Duration.ofSeconds(30)),
 						new DokprodInfotrygdbrevProperties.ServiceUser("", ""),
 				false,
 				2,
 				10);
-		service = new SftpFileService(remoteFileTemplate, properties);
+		return new SftpFileService(remoteFileTemplate, properties);
 	}
 
 	@Test
@@ -123,6 +129,64 @@ public class SftpFileServiceTest {
 		assertThrows(
 				IllegalStateException.class,
 				() -> service.deleteFile("started.txt"));
+	}
+
+	@Test
+	public void shouldMoveRemoteFile() throws Exception {
+		Session<SftpClient.DirEntry> session = mock(Session.class);
+		doAnswer(invocation -> {
+			SessionCallback<SftpClient.DirEntry, Void> callback = invocation.getArgument(0);
+			return callback.doInSession(session);
+		}).when(remoteFileTemplate).execute(any());
+		when(session.exists(REMOTE_DIRECTORY + "/source.txt")).thenReturn(true);
+		when(session.exists("/")).thenReturn(true);
+		when(session.mkdir("/behandlet")).thenReturn(true);
+
+		service.moveFile("source.txt", "behandlet/source.txt");
+
+		verify(session).rename(REMOTE_DIRECTORY + "/source.txt", "/behandlet/source.txt");
+	}
+
+	@Test
+	public void shouldUploadLocalFile() throws Exception {
+		Session<SftpClient.DirEntry> session = mock(Session.class);
+		doAnswer(invocation -> {
+			SessionCallback<SftpClient.DirEntry, Void> callback = invocation.getArgument(0);
+			return callback.doInSession(session);
+		}).when(remoteFileTemplate).execute(any());
+		when(session.exists("/")).thenReturn(true);
+		when(session.mkdir("/output")).thenReturn(true);
+		Path file = Files.createTempFile("sftp-upload", ".txt");
+		Files.writeString(file, "data");
+
+		service.uploadFile(file, "output/result.txt");
+
+		verify(session).write(any(InputStream.class), eq("/output/result.txt"));
+	}
+
+	@Test
+	public void shouldUseSiblingDirectoriesForRelativeInputPath() throws Exception {
+		service = newService("inbound");
+		Session<SftpClient.DirEntry> session = mock(Session.class);
+		doAnswer(invocation -> {
+			SessionCallback<SftpClient.DirEntry, Void> callback = invocation.getArgument(0);
+			return callback.doInSession(session);
+		}).when(remoteFileTemplate).execute(any());
+		when(session.exists("inbound/source.txt")).thenReturn(true);
+		when(session.mkdir("behandlet")).thenReturn(true);
+		when(session.mkdir("behandlet/bdok100-behandlet-2026")).thenReturn(true);
+		when(session.mkdir("output")).thenReturn(true);
+		Path file = Files.createTempFile("sftp-upload", ".txt");
+
+		try {
+			service.moveFileIfExists("source.txt", "behandlet/bdok100-behandlet-2026/source.txt");
+			service.uploadFile(file, "output/result.txt");
+
+			verify(session).rename("inbound/source.txt", "behandlet/bdok100-behandlet-2026/source.txt");
+			verify(session).write(any(InputStream.class), eq("output/result.txt"));
+		} finally {
+			Files.deleteIfExists(file);
+		}
 	}
 
 	private SftpClient.DirEntry entry(String name, boolean directory) {

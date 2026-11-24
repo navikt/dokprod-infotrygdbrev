@@ -3,12 +3,15 @@ package no.nav.dokprod.infotrygdbrev.config;
 import no.nav.dokprod.infotrygdbrev.bdok100.config.BatchCommonConfig;
 import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100Config;
 import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
+import no.nav.dokprod.infotrygdbrev.common.support.JobCompletionFileHandler;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+
+import static org.mockito.Mockito.mock;
 
 @Configuration
 @EnableAutoConfiguration
@@ -38,5 +41,10 @@ public class BatchTestConfig {
 				workspace.behandlet(),
 				2,
 				10);
+	}
+
+	@Bean
+	public JobCompletionFileHandler jobCompletionFileHandler() {
+		return mock(JobCompletionFileHandler.class);
 	}
 }

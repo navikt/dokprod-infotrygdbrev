@@ -248,7 +248,7 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 	}
 
 	@Test
-	public void shouldStartBatchMoveToBehandletAndEndWithWarningIfAnyAvvik() throws Exception {
+	public void shouldStartBatchAndEndWithWarningIfAnyAvvik() throws Exception {
 		JobParameters parameters = getDefaultBdok100JobParameters();
 		JobExecution jobExecution = launchJob(parameters);
 
@@ -258,14 +258,9 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 		assertThat(workspace.failed().toFile().list().length, is(0));
 		validateMessageInQueue();
 
-		// files in generated folder with timestamp in name
-		Path behandletFolder = workspace.behandlet();
-		String[] behandlets = behandletFolder.toFile().list();
-		assertThat(behandlets.length, is(1));
-		assertThat(behandletFolder.resolve(behandlets[0]).toFile().list().length, is(2));
-
-		// contains "static" folder
-		assertThat(workspace.input().toFile().list().length, is(1));
+		// The SFTP handler is replaced by a no-op in this batch-only test.
+		assertThat(workspace.behandlet().toFile().list().length, is(0));
+		assertThat(workspace.input().toFile().list().length, is(3));
 
 		assertThat(bdok100Repo.countByStatus(FEILET_GSAK), is(0L));
 		assertThat(bdok100Repo.countByStatus(BEHANDLET), is(0L));
@@ -283,7 +278,7 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 	}
 
 	@Test
-	public void shouldMoveToFailedFolderOnFailureAndNotEmptyTableOfFailedEntries() throws Exception {
+	public void shouldFailAndKeepTableOfFailedEntries() throws Exception {
 		Files.delete(workspace.input().resolve(JOURNALDATA_CSV));
 		copyFileFromInputSourceFolderToInputFileFolder("journaldata_failgsaktwice.csv", JOURNALDATA_CSV);
 		maxFailuresChunkListener.setMaxFailures(1);
@@ -297,14 +292,8 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 		assertThat(workspace.behandlet().toFile().list().length, is(0));
 		validateMessageInQueue();
 
-		// files in generated folder with timestamp in name
-		Path failedFolder = workspace.failed();
-		String[] faileds = failedFolder.toFile().list();
-		assertThat(faileds.length, is(1));
-		assertThat(failedFolder.resolve(faileds[0]).toFile().list().length, is(2));
-
-		// contains "static" folder
-		assertThat(workspace.input().toFile().list().length, is(1));
+		assertThat(workspace.failed().toFile().list().length, is(0));
+		assertThat(workspace.input().toFile().list().length, is(3));
 	}
 
 	@Test
@@ -366,11 +355,6 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 			}
 			bdok100Repo.save(bdok100ArbTbl);
 		}
-		Path failedFolder = workspace.failed();
-		failedFolder = failedFolder.resolve(failedFolder.toFile().list()[0]);
-		Files.move(failedFolder.resolve(JOURNALDATA_CSV), workspace.input().resolve(JOURNALDATA_CSV));
-		Files.move(failedFolder.resolve(LINJEDATA_TXT), workspace.input().resolve(LINJEDATA_TXT));
-
 		jobExecution = launchJob(parameters);
 		assertThat(jobExecution.getExitStatus(), is(NavExitStatus.WARNING));
 		assertThat(bdok100Repo.count(), is(0L));
@@ -393,12 +377,6 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 			}
 			bdok100Repo.save(bdok100ArbTbl);
 		}
-		Path failedFolder = workspace.behandlet();
-		failedFolder = failedFolder.resolve(failedFolder.toFile().list()[0]);
-		Files.move(failedFolder.resolve(JOURNALDATA_CSV), workspace.input().resolve(JOURNALDATA_CSV));
-		Files.move(failedFolder.resolve(LINJEDATA_TXT), workspace.input().resolve(LINJEDATA_TXT));
-		Files.delete(failedFolder);
-
 		jobExecution = launchJob(parameters);
 		assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
 		assertThat(bdok100Repo.count(), is(0L));
