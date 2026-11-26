@@ -42,6 +42,8 @@ public class CleanArbeidstabellTaskletTest {
 	private NAVKontors navKontors;
 	@Mock
 	private Bdok100Repo bdok100Repo;
+	@Mock
+	private DatabaseOutputService databaseOutputService;
 
 	@InjectMocks
 	private CleanArbeidstabellTasklet tasklet;
@@ -71,6 +73,7 @@ public class CleanArbeidstabellTaskletTest {
 		tasklet.setClean(true);
 		assertThat(tasklet.execute(null, chunkContext), is(RepeatStatus.FINISHED));
 		verify(template).execute(eq("DELETE FROM ARBTB_BDOK100"));
+		verify(databaseOutputService).deleteAll();
 
 		verify(vedleggsLister).clear();
 		verify(navKontors).clear();
@@ -81,6 +84,7 @@ public class CleanArbeidstabellTaskletTest {
 		tasklet.setSkipClean(true);
 		assertThat(tasklet.execute(null, chunkContext), is(RepeatStatus.FINISHED));
 		verifyNoInteractions(template);
+		verifyNoInteractions(databaseOutputService);
 	}
 
 	@Test

@@ -1,13 +1,12 @@
 package no.nav.dokprod.infotrygdbrev.sftp;
 
-import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.LocalFileService;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
@@ -16,46 +15,18 @@ import java.nio.file.StandardOpenOption;
 public class SftpToLocalFileStagingService {
 
 	private final SftpFileService sftpFileService;
-	private final Bdok100BatchParameters batchParameters;
+	private final LocalFileService localFileService;
 
 	public SftpToLocalFileStagingService(
 			SftpFileService sftpFileService,
-			Bdok100BatchParameters batchParameters
+			LocalFileService localFileService
 	) {
 		this.sftpFileService = sftpFileService;
-		this.batchParameters = batchParameters;
+		this.localFileService = localFileService;
 	}
 
 	public void prepareLocalWorkspace() {
-		try {
-			assureLocalDirectoryExistsAndIsEmpty(batchParameters.inputFileLocation());
-			assureLocalDirectoryExistsAndIsEmpty(batchParameters.staticInputFileLocation());
-			Files.createDirectories(batchParameters.outputFileLocation());
-			Files.createDirectories(batchParameters.failedFileLocation());
-			Files.createDirectories(batchParameters.behandletFileLocation());
-		} catch (IOException e) {
-			throw new IllegalStateException("Failed to prepare local BDOK100 workspace", e);
-		}
-	}
-
-	private void assureLocalDirectoryExistsAndIsEmpty(Path directory) throws IOException {
-		Files.createDirectories(directory);
-		try (var files = Files.list(directory)) {
-			for (Path file : files.toList()) {
-				deleteRecursively(file);
-			}
-		}
-	}
-
-	private void deleteRecursively(Path path) throws IOException {
-		if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
-			try (var children = Files.list(path)) {
-				for (Path child : children.toList()) {
-					deleteRecursively(child);
-				}
-			}
-		}
-		Files.delete(path);
+		localFileService.prepareWorkspace();
 	}
 
 	public void stageFile(String remoteFileName, Path target) {

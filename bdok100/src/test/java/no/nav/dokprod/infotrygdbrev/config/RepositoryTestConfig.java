@@ -34,6 +34,8 @@ public class RepositoryTestConfig {
 
 	@Value("classpath:org/springframework/batch/core/schema-hsqldb.sql")
 	private Resource batchSchema;
+	@Value("classpath:bdok100-avviksrapport-line.sql")
+	private Resource outputLinesSchema;
 
 	@Bean
 	public DataSource dataSource() {
@@ -49,7 +51,7 @@ public class RepositoryTestConfig {
 	public DataSourceInitializer dataSourceInitializer(DataSource dataSource) {
 		DataSourceInitializer initializer = new DataSourceInitializer();
 		initializer.setDataSource(dataSource);
-		initializer.setDatabasePopulator(new ResourceDatabasePopulator(batchSchema));
+		initializer.setDatabasePopulator(new ResourceDatabasePopulator(batchSchema, outputLinesSchema));
 		return initializer;
 	}
 

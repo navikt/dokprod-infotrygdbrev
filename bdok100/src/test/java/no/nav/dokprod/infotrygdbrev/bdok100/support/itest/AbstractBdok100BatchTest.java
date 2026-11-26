@@ -12,6 +12,8 @@ import no.nav.brevogarkiv.batch.common.MaxFailuresChunkListener;
 import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
 import no.nav.dokprod.infotrygdbrev.bdok100.repo.Bdok100Repo;
 import no.nav.dokprod.infotrygdbrev.bdok100.support.to.NAVKontors;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.RemoteReportWriter;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.DatabaseOutputService;
 import no.nav.dokprod.infotrygdbrev.common.AbstractSpringBatchTest;
 import no.nav.dokprod.infotrygdbrev.config.Bdok100TestWorkspace;
 import no.nav.dokprod.infotrygdbrev.util.MDCOperations;
@@ -34,12 +36,12 @@ import jakarta.jms.Session;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Map;
+import static org.mockito.Mockito.reset;
 
 /**
  * Base test class for BDOK100 tests
@@ -69,6 +71,10 @@ public abstract class AbstractBdok100BatchTest extends AbstractSpringBatchTest {
 	@Autowired
 	protected Bdok100TestWorkspace workspace;
 	@Autowired
+	protected RemoteReportWriter remoteReportWriter;
+	@Autowired
+	protected DatabaseOutputService databaseOutputService;
+	@Autowired
 	protected MaxFailuresChunkListener maxFailuresChunkListener;
 
 	@Override
@@ -85,6 +91,7 @@ public abstract class AbstractBdok100BatchTest extends AbstractSpringBatchTest {
 		MDC.put(MDCOperations.MDC_CONSUMER_ID, "itestconsumer");
 
 		workspace.reset();
+		reset(remoteReportWriter);
 		maxFailuresChunkListener.setMaxFailures(bdok100BatchParameters.maxFailures());
 		bdok100BatchCounter.resetCounter();
 		kontors.clear();
@@ -128,11 +135,6 @@ public abstract class AbstractBdok100BatchTest extends AbstractSpringBatchTest {
 	protected File getInputFileFolderSource() throws IOException {
 		Resource onClasspath = new ClassPathResource("bdok100/itest/");
 		return onClasspath.getFile();
-	}
-
-	@SneakyThrows
-	protected String getOutputFileAsString(String filename, Charset charset) {
-		return new String(Files.readAllBytes(workspace.output().resolve(filename)), charset);
 	}
 
 	protected Map<CounterEvent, ? extends EventCounter> getEventReport() {

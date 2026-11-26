@@ -13,8 +13,6 @@ import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Set;
 
@@ -148,7 +146,7 @@ public class SftpFileServiceTest {
 	}
 
 	@Test
-	public void shouldUploadLocalFile() throws Exception {
+	public void shouldWriteReportToSiblingOutputDirectory() throws Exception {
 		Session<SftpClient.DirEntry> session = mock(Session.class);
 		doAnswer(invocation -> {
 			SessionCallback<SftpClient.DirEntry, Void> callback = invocation.getArgument(0);
@@ -156,12 +154,76 @@ public class SftpFileServiceTest {
 		}).when(remoteFileTemplate).execute(any());
 		when(session.exists("/")).thenReturn(true);
 		when(session.mkdir("/output")).thenReturn(true);
-		Path file = Files.createTempFile("sftp-upload", ".txt");
-		Files.writeString(file, "data");
+		byte[] contents = "rapport".getBytes();
 
-		service.uploadFile(file, "output/result.txt");
+		service.writeFile("output/rapport.txt", contents);
 
-		verify(session).write(any(InputStream.class), eq("/output/result.txt"));
+		ArgumentCaptor<InputStream> input = ArgumentCaptor.forClass(InputStream.class);
+		verify(session).write(input.capture(), eq("/output/rapport.txt"));
+		assertArrayEquals(contents, input.getValue().readAllBytes());
+	}
+
+	@Test
+	public void shouldStreamDatabaseOutputToSiblingDirectory() throws Exception {
+		Session<SftpClient.DirEntry> session = mock(Session.class);
+		doAnswer(invocation -> {
+			SessionCallback<SftpClient.DirEntry, Void> callback = invocation.getArgument(0);
+			return callback.doInSession(session);
+		}).when(remoteFileTemplate).execute(any());
+		when(session.exists("/")).thenReturn(true);
+		when(session.mkdir("/output")).thenReturn(true);
+		byte[] content = "avvik".getBytes();
+		doAnswer(invocation -> {
+			InputStream stream = invocation.getArgument(0);
+			assertArrayEquals(content, stream.readAllBytes());
+			return null;
+		}).when(session).write(any(InputStream.class), eq("/output/avvik.txt"));
+		SftpClient.DirEntry uploadedFile = remoteFile("avvik.txt", content.length);
+		when(session.list("/output")).thenReturn(new SftpClient.DirEntry[]{uploadedFile});
+
+		service.uploadContent(new ByteArrayInputStream(content), "output/avvik.txt");
+
+		verify(session).write(any(InputStream.class), eq("/output/avvik.txt"));
+		verify(session).list("/output");
+	}
+
+	@Test
+	public void shouldRejectIncompleteUpload() throws Exception {
+		Session<SftpClient.DirEntry> session = mock(Session.class);
+		doAnswer(invocation -> {
+			SessionCallback<SftpClient.DirEntry, Void> callback = invocation.getArgument(0);
+			return callback.doInSession(session);
+		}).when(remoteFileTemplate).execute(any());
+		when(session.exists("/")).thenReturn(true);
+		when(session.mkdir("/output")).thenReturn(true);
+
+		assertThrows(IllegalStateException.class,
+			() -> service.uploadContent(new ByteArrayInputStream("avvik".getBytes()), "output/avvik.txt"));
+	}
+
+	@Test
+	public void shouldRejectMissingOrTruncatedRemoteFile() throws Exception {
+		Session<SftpClient.DirEntry> session = mock(Session.class);
+		doAnswer(invocation -> {
+			SessionCallback<SftpClient.DirEntry, Void> callback = invocation.getArgument(0);
+			return callback.doInSession(session);
+		}).when(remoteFileTemplate).execute(any());
+		when(session.exists("/")).thenReturn(true);
+		when(session.mkdir("/output")).thenReturn(true);
+		doAnswer(invocation -> {
+			InputStream stream = invocation.getArgument(0);
+			stream.transferTo(new ByteArrayOutputStream());
+			return null;
+		}).when(session).write(any(InputStream.class), eq("/output/avvik.txt"));
+		SftpClient.DirEntry truncatedFile = remoteFile("avvik.txt", 2);
+		when(session.list("/output")).thenReturn(
+			new SftpClient.DirEntry[0],
+			new SftpClient.DirEntry[]{truncatedFile});
+
+		assertThrows(IllegalStateException.class,
+			() -> service.uploadContent(new ByteArrayInputStream("avvik".getBytes()), "output/avvik.txt"));
+		assertThrows(IllegalStateException.class,
+			() -> service.uploadContent(new ByteArrayInputStream("avvik".getBytes()), "output/avvik.txt"));
 	}
 
 	@Test
@@ -176,17 +238,13 @@ public class SftpFileServiceTest {
 		when(session.mkdir("behandlet")).thenReturn(true);
 		when(session.mkdir("behandlet/bdok100-behandlet-2026")).thenReturn(true);
 		when(session.mkdir("output")).thenReturn(true);
-		Path file = Files.createTempFile("sftp-upload", ".txt");
+		SftpClient.DirEntry uploadedFile = remoteFile("result.txt", 0);
+		when(session.list("output")).thenReturn(new SftpClient.DirEntry[]{uploadedFile});
+		service.moveFileIfExists("source.txt", "behandlet/bdok100-behandlet-2026/source.txt");
+		service.uploadContent(new ByteArrayInputStream(new byte[0]), "output/result.txt");
 
-		try {
-			service.moveFileIfExists("source.txt", "behandlet/bdok100-behandlet-2026/source.txt");
-			service.uploadFile(file, "output/result.txt");
-
-			verify(session).rename("inbound/source.txt", "behandlet/bdok100-behandlet-2026/source.txt");
-			verify(session).write(any(InputStream.class), eq("output/result.txt"));
-		} finally {
-			Files.deleteIfExists(file);
-		}
+		verify(session).rename("inbound/source.txt", "behandlet/bdok100-behandlet-2026/source.txt");
+		verify(session).write(any(InputStream.class), eq("output/result.txt"));
 	}
 
 	private SftpClient.DirEntry entry(String name, boolean directory) {
@@ -195,6 +253,16 @@ public class SftpFileServiceTest {
 		when(entry.getFilename()).thenReturn(name);
 		when(entry.getAttributes()).thenReturn(attributes);
 		when(attributes.isDirectory()).thenReturn(directory);
+		return entry;
+	}
+
+	private SftpClient.DirEntry remoteFile(String name, long size) {
+		SftpClient.DirEntry entry = mock(SftpClient.DirEntry.class);
+		SftpClient.Attributes attributes = mock(SftpClient.Attributes.class);
+		when(entry.getFilename()).thenReturn(name);
+		when(entry.getAttributes()).thenReturn(attributes);
+		when(attributes.isRegularFile()).thenReturn(true);
+		when(attributes.getSize()).thenReturn(size);
 		return entry;
 	}
 }

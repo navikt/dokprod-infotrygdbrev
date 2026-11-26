@@ -1,7 +1,8 @@
 package no.nav.dokprod.infotrygdbrev.sftp;
 
 import no.nav.dokprod.infotrygdbrev.bdok100.config.DokprodInfotrygdbrevProperties;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.LocalFileService;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.DatabaseOutputService;
 import no.nav.dokprod.infotrygdbrev.common.support.JobCompletionFileHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,8 +15,9 @@ public class SftpConfig {
 
 	@Bean
 	JobCompletionFileHandler jobCompletionFileHandler(SftpFileService sftpFileService,
-													  Bdok100BatchParameters batchParameters) {
-		return new JobCompletionFileHandler(sftpFileService, batchParameters);
+													  LocalFileService localFileService,
+													  DatabaseOutputService databaseOutputService) {
+		return new JobCompletionFileHandler(sftpFileService, localFileService, databaseOutputService);
 	}
 
 	@Bean

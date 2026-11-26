@@ -4,6 +4,7 @@ import no.nav.brevogarkiv.batch.common.LogContextListener;
 import no.nav.brevogarkiv.batch.common.ProgressNotifier;
 import no.nav.dokprod.infotrygdbrev.bdok100.repo.Bdok100Repo;
 import no.nav.dokprod.infotrygdbrev.bdok100.support.CleanArbeidstabellTasklet;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.DatabaseOutputService;
 import no.nav.dokprod.infotrygdbrev.bdok100.support.to.NAVKontors;
 import no.nav.dokprod.infotrygdbrev.bdok100.support.to.VedleggsLister;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -53,6 +54,7 @@ public class CleanArbeidsTabellStepConfiguration {
 			@Value("#{jobParameters[" + SKIP_CLEAN_KEY + "] ?: false}") Boolean skipClean,
 			@Value("#{jobParameters[" + CLEAN_KEY + "] ?: false}") Boolean clean,
 			Bdok100Repo bdok100Repo,
+			DatabaseOutputService databaseOutputService,
 			JdbcTemplate jdbcTemplate,
 			NAVKontors navKontors,
 			VedleggsLister vedleggsLister
@@ -64,6 +66,7 @@ public class CleanArbeidsTabellStepConfiguration {
 		tasklet.setNavKontors(navKontors);
 		tasklet.setVedleggsLister(vedleggsLister);
 		tasklet.setBdok100Repo(bdok100Repo);
+		tasklet.setDatabaseOutputService(databaseOutputService);
 		return tasklet;
 	}
 }

@@ -3,6 +3,8 @@ package no.nav.dokprod.infotrygdbrev.bdok100.config;
 import no.nav.brevogarkiv.batch.common.LogContextListener;
 import no.nav.brevogarkiv.batch.common.ProgressNotifier;
 import no.nav.dokprod.infotrygdbrev.bdok100.support.KontrollrapportTasklet;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.RemoteReportWriter;
+import no.nav.dokprod.infotrygdbrev.bdok100.repo.Bdok100Repo;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.Step;
@@ -40,7 +42,7 @@ public class KontrollrapportStepConfiguration {
 
 	@Bean
 	@StepScope
-	public KontrollrapportTasklet kontrollrapportTasklet() {
-		return new KontrollrapportTasklet();
+	public KontrollrapportTasklet kontrollrapportTasklet(Bdok100Repo repo, RemoteReportWriter remoteReportWriter) {
+		return new KontrollrapportTasklet(repo, remoteReportWriter);
 	}
 }

@@ -110,10 +110,10 @@ public class Bdok100Config {
 		return new JobBuilder(JOB_NAME, jobRepository)
 				.listener(logContextListener)
 				.listener(userIdMdcJobExecutionListener)
+				.listener(jobCompletionFileHandler)
 				.listener(bdok100BatchExitListener)
 				.listener(bdok100BatchParameterExecutionContextPopulator)
 				.listener(bdok100BatchCounterLogger())
-				.listener(jobCompletionFileHandler)
 
 				.start(inputValidationStep)
 				.next(cleanableOnlyEmptyDeciderBdok100)

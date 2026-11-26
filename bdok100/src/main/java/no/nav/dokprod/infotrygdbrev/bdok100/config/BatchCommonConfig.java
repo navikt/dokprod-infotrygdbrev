@@ -5,6 +5,8 @@ import no.nav.brevogarkiv.batch.common.LogContextListener;
 import no.nav.brevogarkiv.batch.common.MaxFailuresChunkListener;
 import no.nav.dokprod.infotrygdbrev.bdok100.repo.Bdok100Repo;
 import no.nav.dokprod.infotrygdbrev.bdok100.support.AsyncSakConsumer;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.LocalFileService;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.DatabaseOutputService;
 import no.nav.dokprod.infotrygdbrev.common.ExitStatusJobExecutionListener;
 import no.nav.dokprod.infotrygdbrev.common.UserIdMdcJobExecutionListener;
 import no.nav.dokprod.infotrygdbrev.common.support.InputDirectoryValidationTasklet;
@@ -22,6 +24,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
@@ -40,6 +43,16 @@ import java.util.concurrent.ThreadPoolExecutor;
 @EnableBatchProcessing
 @EnableJpaRepositories(basePackageClasses = {Bdok100Repo.class})
 public class BatchCommonConfig implements AsyncConfigurer {
+
+	@Bean
+	public LocalFileService localFileService(Bdok100BatchParameters batchParameters) {
+		return new LocalFileService(batchParameters);
+	}
+
+	@Bean
+	public DatabaseOutputService databaseOutputService(JdbcTemplate jdbcTemplate) {
+		return new DatabaseOutputService(jdbcTemplate);
+	}
 
 	// @Value("${default.threadpool.corepoolsize}")
 	// private int corePoolSize;

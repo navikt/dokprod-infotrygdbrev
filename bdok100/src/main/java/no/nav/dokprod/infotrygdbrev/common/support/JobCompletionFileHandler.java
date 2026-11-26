@@ -1,7 +1,8 @@
 package no.nav.dokprod.infotrygdbrev.common.support;
 
 import no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper;
-import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.DatabaseOutputService;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.LocalFileService;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.job.JobExecution;
@@ -9,8 +10,6 @@ import org.springframework.batch.core.job.parameters.JobParameter;
 import org.springframework.batch.core.listener.JobExecutionListener;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Date;
 import java.util.Set;
 
@@ -29,11 +28,14 @@ public class JobCompletionFileHandler implements JobExecutionListener {
 	private static final String FAILED_DIRECTORY_NAME = "failed";
 
 	private final PostRunFileTransfer fileTransfer;
-	private final Bdok100BatchParameters batchParameters;
+	private final LocalFileService localFileService;
+	private final DatabaseOutputService databaseOutputService;
 
-	public JobCompletionFileHandler(PostRunFileTransfer fileTransfer, Bdok100BatchParameters batchParameters) {
+	public JobCompletionFileHandler(PostRunFileTransfer fileTransfer, LocalFileService localFileService,
+									DatabaseOutputService databaseOutputService) {
 		this.fileTransfer = fileTransfer;
-		this.batchParameters = batchParameters;
+		this.localFileService = localFileService;
+		this.databaseOutputService = databaseOutputService;
 	}
 
 	@Override
@@ -65,6 +67,7 @@ public class JobCompletionFileHandler implements JobExecutionListener {
 
 	private void ok(JobExecution jobExecution) {
 		finalizeFiles(jobExecution, BEHANDLET_DIRECTORY_NAME);
+		databaseOutputService.deleteForJob(jobExecution.getJobInstance().getId());
 	}
 
 	private void fail(JobExecution jobExecution) {
@@ -77,7 +80,7 @@ public class JobCompletionFileHandler implements JobExecutionListener {
 			+ "-" + targetDirectory + "-" + FilenameHelper.formatDateToSeconds(startTime);
 
 		moveRemoteInputFiles(timestampedFolder);
-		uploadLocalOutputFiles();
+		uploadDatabaseOutputFiles(jobExecution.getJobInstance().getId(), startTime);
 		deleteLocalFiles();
 	}
 
@@ -90,36 +93,17 @@ public class JobCompletionFileHandler implements JobExecutionListener {
 		Set.of(JOURNALDATA_CSV, LINJEDATA_TXT).forEach(fileName -> fileTransfer.moveFileIfExists(fileName, timestampedFolder + "/" + fileName));
 	}
 
-	private void uploadLocalOutputFiles() {
-		if (!Files.exists(batchParameters.outputFileLocation())) {
-			return;
-		}
-		try (var outputFiles = Files.list(batchParameters.outputFileLocation())) {
-			outputFiles
-				.filter(Files::isRegularFile)
-				.forEach(file -> fileTransfer.uploadFile(file, OUTPUT_DIRECTORY_NAME + "/" + file.getFileName()));
-		} catch (Exception e) {
-			throw new IllegalStateException("Failed to upload output files to SFTP", e);
+	private void uploadDatabaseOutputFiles(long jobInstanceId, Date startTime) {
+		for (var type : databaseOutputService.filesForJob(jobInstanceId)) {
+			try (var content = databaseOutputService.openStream(jobInstanceId, type)) {
+				fileTransfer.uploadContent(content, OUTPUT_DIRECTORY_NAME + "/" + type.filename(startTime));
+			} catch (IOException e) {
+				throw new IllegalStateException("Failed to upload BDOK100 output " + type, e);
+			}
 		}
 	}
 
 	private void deleteLocalFiles() {
-		try {
-			for (String fileName : Set.of(JOURNALDATA_CSV, LINJEDATA_TXT)) {
-				Files.deleteIfExists(batchParameters.inputFileLocation().resolve(fileName));
-			}
-			for (String fileName : Set.of(FilenameHelper.KONTOR_CSV, FilenameHelper.VEDLEGG_CSV)) {
-				Files.deleteIfExists(batchParameters.staticInputFileLocation().resolve(fileName));
-			}
-			if (Files.exists(batchParameters.outputFileLocation())) {
-				try (var outputFiles = Files.list(batchParameters.outputFileLocation())) {
-					for (Path file : outputFiles.filter(Files::isRegularFile).toList()) {
-						Files.delete(file);
-					}
-				}
-			}
-		} catch (IOException e) {
-			throw new IllegalStateException("Failed to delete local BDOK100 files after SFTP upload", e);
-		}
+		localFileService.deleteLocalFiles();
 	}
 }

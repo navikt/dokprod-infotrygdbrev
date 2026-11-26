@@ -3,6 +3,7 @@ package no.nav.dokprod.infotrygdbrev.config;
 import no.nav.dokprod.infotrygdbrev.bdok100.config.BatchCommonConfig;
 import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100Config;
 import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.RemoteReportWriter;
 import no.nav.dokprod.infotrygdbrev.common.support.JobCompletionFileHandler;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Primary;
@@ -46,5 +47,10 @@ public class BatchTestConfig {
 	@Bean
 	public JobCompletionFileHandler jobCompletionFileHandler() {
 		return mock(JobCompletionFileHandler.class);
+	}
+
+	@Bean
+	public RemoteReportWriter remoteReportWriter() {
+		return mock(RemoteReportWriter.class);
 	}
 }

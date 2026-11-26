@@ -1,10 +1,8 @@
 package no.nav.dokprod.infotrygdbrev.bdok100.support;
 
-import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.OUTPUT_FILE_LOCATION_KEY;
 import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.START_TIME_KEY;
 import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.getKontrollrapport;
 
-import com.google.common.io.Files;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.dokprod.infotrygdbrev.bdok100.Bdok100Constants;
 import no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100Status;
@@ -15,20 +13,32 @@ import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Date;
 
 @Slf4j
 public class KontrollrapportTasklet implements Tasklet {
 
-	@Autowired
-	private Bdok100Repo repo;
+	private final Bdok100Repo repo;
+	private final RemoteReportWriter remoteReportWriter;
+
+	public KontrollrapportTasklet(Bdok100Repo repo, RemoteReportWriter remoteReportWriter) {
+		this.repo = repo;
+		this.remoteReportWriter = remoteReportWriter;
+	}
 
 	@Override
-	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
+		Date startTime = (Date) chunkContext.getStepContext().getJobExecutionContext().get(START_TIME_KEY);
+		String content = writeKontrollrapport(startTime);
+
+		log.info("\r\nKontrollrapport:" +
+				"\r\n---------------------------------------------\r\n" +
+				content +
+				"\r\n---------------------------------------------");
+		return RepeatStatus.FINISHED;
+	}
+
+	private String writeKontrollrapport(Date startTime) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Antall dokumenter i linjeprintfil: ").append(repo.countByLineprintBrevIsNotNull());
 		sb.append("\r\nAntall rader i journalføringsfil: ").append(repo.countByJournalforingsfilIsNotNull());
@@ -45,19 +55,9 @@ public class KontrollrapportTasklet implements Tasklet {
 		for (CountPair countPair : repo.countByLinjedataBrevkode()) {
 			sb.append("\r\nbrevkode=").append(countPair.getName()).append(": ").append(countPair.getCount());
 		}
-		Files.write(sb.toString(), Paths.get(getKontrollrapportPath(chunkContext)).toFile(), Bdok100Constants.BDOK100_OUTPUT_CHARSET);
-
-		log.info("\r\nKontrollrapport:" +
-				"\r\n---------------------------------------------\r\n" +
-				sb.toString() +
-				"\r\n---------------------------------------------");
-		return RepeatStatus.FINISHED;
+		String content = sb.toString();
+		remoteReportWriter.writeFile("output/" + getKontrollrapport(startTime),
+			content.getBytes(Bdok100Constants.BDOK100_OUTPUT_CHARSET));
+		return content;
 	}
-
-	private String getKontrollrapportPath(ChunkContext chunkContext) {
-		Path outputLocation = (Path) chunkContext.getStepContext().getJobExecutionContext().get(OUTPUT_FILE_LOCATION_KEY);
-		Date startTime = (Date) chunkContext.getStepContext().getJobExecutionContext().get(START_TIME_KEY);
-		return outputLocation.toString() + "/" + getKontrollrapport(startTime);
-	}
-
 }

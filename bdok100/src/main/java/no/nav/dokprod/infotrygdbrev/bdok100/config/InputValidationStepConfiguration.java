@@ -15,13 +15,9 @@ import org.springframework.batch.infrastructure.item.ExecutionContext;
 import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.util.Assert;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.JOURNALDATA_CSV;
 import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.KONTOR_CSV;
@@ -53,7 +49,6 @@ public class InputValidationStepConfiguration extends AbstractBdok100StepConfig 
 		return new Bdok100InputValidationTasklet(
 			bdok100BatchParameters.inputFileLocation(),
 			bdok100BatchParameters.staticInputFileLocation(),
-			List.of(bdok100BatchParameters.outputFileLocation(), bdok100BatchParameters.behandletFileLocation(), bdok100BatchParameters.failedFileLocation()),
 			navKontors, vedleggsLister);
 	}
 
@@ -61,20 +56,17 @@ public class InputValidationStepConfiguration extends AbstractBdok100StepConfig 
 
 		private final Path inputFolder;
 		private final Path staticInputFolder;
-		private final List<Path> writeableFolders = new ArrayList<>();
 		private final NAVKontors navKontors;
 		private final VedleggsLister vedleggsLister;
 
 		public Bdok100InputValidationTasklet(
 			Path inputFolder,
 			Path staticInputFolder,
-			Collection<Path> writeableFolders,
 			NAVKontors navKontors,
 			VedleggsLister vedleggsLister
 		) {
 			this.inputFolder = inputFolder;
 			this.staticInputFolder = staticInputFolder;
-			this.writeableFolders.addAll(writeableFolders);
 			this.navKontors = navKontors;
 			this.vedleggsLister = vedleggsLister;
 		}
@@ -94,9 +86,6 @@ public class InputValidationStepConfiguration extends AbstractBdok100StepConfig 
 			executionContext.put(Bdok100Constants.CURRENT_NAVKONTOR, pathToString(staticInputFolder.resolve(KONTOR_CSV)));
 			executionContext.put(Bdok100Constants.CURRENT_VEDLEGG, pathToString(staticInputFolder.resolve(VEDLEGG_CSV)));
 
-			for (Path path : writeableFolders) {
-				Assert.isTrue(Files.isWritable(path), "Cannot write to location " + path.toString());
-			}
 			navKontors.clear();
 			vedleggsLister.clear();
 

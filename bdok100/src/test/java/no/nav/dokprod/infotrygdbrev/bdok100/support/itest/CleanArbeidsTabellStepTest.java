@@ -8,13 +8,17 @@ import static org.junit.Assert.assertThat;
 import no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100ArbTbl;
 import no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100Status;
 import no.nav.dokprod.infotrygdbrev.bdok100.repo.Bdok100Repo;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.DatabaseOutputService.AvvikType;
 import no.nav.dokprod.infotrygdbrev.support.StrUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import static no.nav.dokprod.infotrygdbrev.common.BDOKCommonBatchInputParameters.CLEAN_KEY;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Step test for BDOK100 CleanArbeidsTabellStep
@@ -39,6 +43,8 @@ public class CleanArbeidsTabellStepTest extends AbstractBdok100StepTest {
 
 	@Test
 	public void shouldCleanArbeidstabell() throws Exception {
+		databaseOutputService.writer(99999L, AvvikType.LINJEPRINTFIL, Bdok100ArbTbl::getLineprintBrev)
+			.open(new ExecutionContext());
 		entityManager.clear();
 		JobExecution jobExecution = launchStep("cleanArbeidsTabellStep", getDefaultBdok100JobParameters(), getJobExecutionContext());
 		assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
@@ -52,6 +58,21 @@ public class CleanArbeidsTabellStepTest extends AbstractBdok100StepTest {
 		assertThat(repo.countByStatus(Bdok100Status.BEHANDLET), is(0L));
 
 		assertThat(repo.countByStatus(Bdok100Status.FEILET_GSAK), is(1L));
+		assertThat(databaseOutputService.filesForJob(99999L).size(), is(1));
+		databaseOutputService.deleteForJob(99999L);
+	}
+
+	@Test
+	public void shouldCleanAllPersistedOutputWhenCleanOnly() throws Exception {
+		databaseOutputService.writer(99999L, AvvikType.LINJEPRINTFIL, Bdok100ArbTbl::getLineprintBrev)
+			.open(new ExecutionContext());
+
+		JobExecution jobExecution = launchStep("cleanArbeidsTabellStep",
+			parameterBuilder().addJobParameter(CLEAN_KEY, true, Boolean.class).toJobParameters(),
+			getJobExecutionContext());
+
+		assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
+		assertTrue(databaseOutputService.filesForJob(99999L).isEmpty());
 	}
 
 	private void saveWithStatus(Bdok100Status status) {

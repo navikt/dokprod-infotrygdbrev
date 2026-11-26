@@ -29,6 +29,7 @@ public class CleanArbeidstabellTasklet implements Tasklet {
 	private VedleggsLister vedleggsLister;
 	private Boolean clean;
 	private Bdok100Repo bdok100Repo;
+	private DatabaseOutputService databaseOutputService;
 
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
@@ -39,6 +40,7 @@ public class CleanArbeidstabellTasklet implements Tasklet {
 		if (!skipClean) {
 			if (clean) {
 				template.execute("DELETE FROM ARBTB_BDOK100");
+				databaseOutputService.deleteAll();
 			} else {
 				template.execute("DELETE FROM ARBTB_BDOK100 WHERE STATUS <> '" + FEILET_GSAK + "'");
 			}
@@ -87,4 +89,7 @@ public class CleanArbeidstabellTasklet implements Tasklet {
 		this.bdok100Repo = bdok100Repo;
 	}
 
+	public void setDatabaseOutputService(DatabaseOutputService databaseOutputService) {
+		this.databaseOutputService = databaseOutputService;
+	}
 }

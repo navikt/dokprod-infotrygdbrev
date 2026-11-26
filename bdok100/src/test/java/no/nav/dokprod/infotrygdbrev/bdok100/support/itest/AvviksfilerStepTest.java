@@ -12,6 +12,7 @@ import no.nav.dokprod.infotrygdbrev.bdok100.Bdok100Constants;
 import no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100ArbTbl;
 import no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100Status;
 import no.nav.dokprod.infotrygdbrev.bdok100.repo.Bdok100Repo;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.DatabaseOutputService.AvvikType;
 import org.hamcrest.Matcher;
 import org.joda.time.LocalDate;
 import org.junit.Test;
@@ -37,6 +38,7 @@ public class AvviksfilerStepTest extends AbstractBdok100StepTest {
 
 	@Autowired
 	private Bdok100Repo repo;
+	private long jobExecutionId;
 
 	@Test
 	public void shouldWriteToBothAvviksfilesWhenManAvviksfilLFPTrue() throws Exception {
@@ -49,6 +51,7 @@ public class AvviksfilerStepTest extends AbstractBdok100StepTest {
 				.build());
 
 		JobExecution jobExecution = launchStep(STEP_NAME, getDefaultBdok100JobParameters(), getExecutionContext());
+		jobExecutionId = jobExecution.getJobInstance().getId();
 		assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
 
 		assertOutputFiles();
@@ -65,6 +68,7 @@ public class AvviksfilerStepTest extends AbstractBdok100StepTest {
 				.build());
 
 		JobExecution jobExecution = launchStep(STEP_NAME, getDefaultBdok100JobParameters(), getExecutionContext());
+		jobExecutionId = jobExecution.getJobInstance().getId();
 		assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
 
 		assertOutputFiles();
@@ -81,6 +85,7 @@ public class AvviksfilerStepTest extends AbstractBdok100StepTest {
 				.build());
 
 		JobExecution jobExecution = launchStep(STEP_NAME, getDefaultBdok100JobParameters(), getExecutionContext());
+		jobExecutionId = jobExecution.getJobInstance().getId();
 		assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
 
 		assertFile(LPF_FILENAME, isEmptyString());
@@ -106,6 +111,7 @@ public class AvviksfilerStepTest extends AbstractBdok100StepTest {
 				.build());
 
 		JobExecution jobExecution = launchStep(STEP_NAME, getDefaultBdok100JobParameters(), getExecutionContext());
+		jobExecutionId = jobExecution.getJobInstance().getId();
 		assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
 
 		assertOutputFiles();
@@ -117,8 +123,16 @@ public class AvviksfilerStepTest extends AbstractBdok100StepTest {
 	}
 
 	private void assertFile(String filename, Matcher<String> matcher) {
-		String journaldataOutput = getOutputFileAsString(filename, Bdok100Constants.BDOK100_INPUT_CHARSET);
+		AvvikType type = filename.equals(LPF_FILENAME) ? AvvikType.LINJEPRINTFIL : AvvikType.JOURNALFORINGSFIL;
+		assertThat(type.filename(START_TIME), is(filename));
+		String journaldataOutput;
+		try (var stream = databaseOutputService.openStream(jobExecutionId, type)) {
+			journaldataOutput = new String(stream.readAllBytes(), Bdok100Constants.BDOK100_INPUT_CHARSET);
+		} catch (java.io.IOException e) {
+			throw new IllegalStateException(e);
+		}
 		assertThat(journaldataOutput, matcher);
+		assertThat(workspace.output().toFile().list().length, is(0));
 	}
 
 	private ExecutionContext getExecutionContext() throws Exception {

@@ -1,11 +1,11 @@
 package no.nav.dokprod.infotrygdbrev.bdok100.support.itest;
 
-import com.google.common.collect.Lists;
 import jakarta.xml.bind.JAXBElement;
 import no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100ArbTbl;
 import no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100Status;
 import no.nav.dokprod.infotrygdbrev.bdok100.support.mappers.ProduserIkkeRedigerbartDokumentXmlMapperTest;
 import no.nav.dokprod.infotrygdbrev.common.BDOKCommonBatchInputParameters;
+import no.nav.dokprod.infotrygdbrev.common.support.JobCompletionFileHandler;
 import no.nav.dokprod.infotrygdbrev.util.NavExitStatus;
 import no.nav.dok.meldinger.virksomhet.dokumentproduksjon.NorskPostadresse;
 import no.nav.dok.meldinger.virksomhet.dokumentproduksjon.Person;
@@ -19,25 +19,28 @@ import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.JobParameters;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.START_TIME_KEY;
 import static no.nav.dokprod.infotrygdbrev.bdok100.Bdok100Constants.BDOK100_OUTPUT_CHARSET;
-import static no.nav.dokprod.infotrygdbrev.bdok100.Bdok100Constants.FILE_DATE_FORMAT_MS;
 import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.JOURNALDATA_CSV;
 import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.LINJEDATA_TXT;
-import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.getKontrollrapport;
+import static no.nav.dokprod.infotrygdbrev.bdok100.FilenameHelper.formatDateToSeconds;
 import static no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100Status.BEHANDLET;
 import static no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100Status.FEILET_GSAK;
 import static no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100Status.KAN_IKKE_BEHANDLES;
 import static no.nav.dokprod.infotrygdbrev.bdok100.support.mappers.ProduserIkkeRedigerbartDokumentXmlMapper.BDOK100_PREFIX;
 import static no.nav.dokprod.infotrygdbrev.consumer.mock.SakConsumerMock.SAK_ID;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.reset;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -45,12 +48,17 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
+import org.mockito.ArgumentCaptor;
 
 public class Bdok100JobTest extends AbstractBdok100BatchTest {
 	private static final String UUID_REGEX = "([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}){1}";
 
+	@Autowired
+	private JobCompletionFileHandler jobCompletionFileHandler;
+
 	@Before
 	public void setUp() throws Exception {
+		reset(jobCompletionFileHandler);
 		setupBdok100InputFiles();
 	}
 
@@ -102,8 +110,7 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 		assertThat(((NorskPostadresse)produserIkkeRedigerbartDokument.getDokumentbestillingsinformasjon().getAdresse()).getLand(), is("NO"));
 		assertThat(((NorskPostadresse)produserIkkeRedigerbartDokument.getDokumentbestillingsinformasjon().getAdresse()).getPoststed(), is("Test"));
 
-		Path kontrollrapport = findKontrollrapport(jobExecution, true);
-		List<String> lines = Files.readAllLines(kontrollrapport, BDOK100_OUTPUT_CHARSET);
+		List<String> lines = kontrollrapportLines(jobExecution);
 		assertThat(lines.get(0), is("Antall dokumenter i linjeprintfil: 1"));
 		assertThat(lines.get(1), is("Antall rader i journalføringsfil: 1"));
 		assertThat(lines.get(2), is("Antall brev i dokumentbestilling: 1"));
@@ -119,8 +126,7 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 		assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
 		validateMessageInQueue();
 
-		Path kontrollrapport = findKontrollrapport(jobExecution, true);
-		List<String> lines = Files.readAllLines(kontrollrapport, BDOK100_OUTPUT_CHARSET);
+		List<String> lines = kontrollrapportLines(jobExecution);
 		assertThat(lines.get(0), is("Antall dokumenter i linjeprintfil: 2"));
 		assertThat(lines.get(1), is("Antall rader i journalføringsfil: 2"));
 		assertThat(lines.get(2), is("Antall brev i dokumentbestilling: 1"));
@@ -136,8 +142,7 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 		validateMessageInQueue();
 
 		assertThat(jobExecution.getExitStatus(), is(NavExitStatus.WARNING));
-		Path kontrollrapport = findKontrollrapport(jobExecution, true);
-		List<String> lines = Files.readAllLines(kontrollrapport, BDOK100_OUTPUT_CHARSET);
+		List<String> lines = kontrollrapportLines(jobExecution);
 		assertThat(lines.get(0), is("Antall dokumenter i linjeprintfil: 2"));
 		assertThat(lines.get(1), is("Antall rader i journalføringsfil: 2"));
 		assertThat(lines.get(2), is("Antall brev i dokumentbestilling: 1"));
@@ -152,8 +157,7 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 		JobExecution jobExecution = launchJob(parameters);
 
 		assertThat(jobExecution.getExitStatus(), is(NavExitStatus.WARNING));
-		Path kontrollrapport = findKontrollrapport(jobExecution, true);
-		List<String> lines = Files.readAllLines(kontrollrapport, BDOK100_OUTPUT_CHARSET);
+		List<String> lines = kontrollrapportLines(jobExecution);
 		assertThat(lines.get(0), is("Antall dokumenter i linjeprintfil: 4"));
 		assertThat(lines.get(1), is("Antall rader i journalføringsfil: 4"));
 		assertThat(lines.get(2), is("Antall brev i dokumentbestilling: 3"));
@@ -169,8 +173,7 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 		JobExecution jobExecution = launchJob(parameters);
 
 		assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
-		Path kontrollrapport = findKontrollrapport(jobExecution, true);
-		List<String> lines = Files.readAllLines(kontrollrapport, BDOK100_OUTPUT_CHARSET);
+		List<String> lines = kontrollrapportLines(jobExecution);
 		assertThat(lines.get(0), is("Antall dokumenter i linjeprintfil: 2"));
 		assertThat(lines.get(1), is("Antall rader i journalføringsfil: 1"));
 		assertThat(lines.get(2), is("Antall brev i dokumentbestilling: 1"));
@@ -187,8 +190,7 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 		JobExecution jobExecution = launchJob(parameters);
 
 		assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
-		Path kontrollrapport = findKontrollrapport(jobExecution, true);
-		List<String> lines = Files.readAllLines(kontrollrapport, BDOK100_OUTPUT_CHARSET);
+		List<String> lines = kontrollrapportLines(jobExecution);
 		assertThat(lines.get(0), is("Antall dokumenter i linjeprintfil: 2"));
 		assertThat(lines.get(1), is("Antall rader i journalføringsfil: 2"));
 		assertThat(lines.get(2), is("Antall brev i dokumentbestilling: 1"));
@@ -206,8 +208,7 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 		assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
 		validateMessageInQueue();
 
-		Path kontrollrapport = findKontrollrapport(jobExecution, true);
-		List<String> lines = Files.readAllLines(kontrollrapport, BDOK100_OUTPUT_CHARSET);
+		List<String> lines = kontrollrapportLines(jobExecution);
 		assertThat(lines.get(0), is("Antall dokumenter i linjeprintfil: 1"));
 		assertThat(lines.get(1), is("Antall rader i journalføringsfil: 1"));
 		assertThat(lines.get(2), is("Antall brev i dokumentbestilling: 1"));
@@ -223,8 +224,7 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 		assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
 		validateMessageInQueue();
 
-		Path kontrollrapport = findKontrollrapport(jobExecution, true);
-		List<String> lines = Files.readAllLines(kontrollrapport, BDOK100_OUTPUT_CHARSET);
+		List<String> lines = kontrollrapportLines(jobExecution);
 		assertThat(lines.get(0), is("Antall dokumenter i linjeprintfil: 1"));
 		assertThat(lines.get(1), is("Antall rader i journalføringsfil: 1"));
 		assertThat(lines.get(2), is("Antall brev i dokumentbestilling: 1"));
@@ -240,8 +240,7 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 		assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
 		validateMessageInQueue();
 
-		Path kontrollrapport = findKontrollrapport(jobExecution, true);
-		List<String> lines = Files.readAllLines(kontrollrapport, BDOK100_OUTPUT_CHARSET);
+		List<String> lines = kontrollrapportLines(jobExecution);
 		assertThat(lines.get(0), is("Antall dokumenter i linjeprintfil: 1"));
 		assertThat(lines.get(1), is("Antall rader i journalføringsfil: 1"));
 		assertThat(lines.get(2), is("Antall brev i dokumentbestilling: 1"));
@@ -254,7 +253,8 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 
 		assertThat(jobExecution.getExitStatus(), is(NavExitStatus.WARNING));
 
-		assertThat(workspace.output().toFile().list().length, is(4));
+		assertThat(workspace.output().toFile().list().length, is(0));
+		assertThat(databaseOutputService.filesForJob(jobExecution.getJobInstance().getId()).size(), is(3));
 		assertThat(workspace.failed().toFile().list().length, is(0));
 		validateMessageInQueue();
 
@@ -298,11 +298,18 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 
 	@Test
 	public void shouldStartBatchAndKeepWorkTable() throws Exception {
+		AtomicReference<String> exitStatusAtFinalization = new AtomicReference<>();
+		doAnswer(invocation -> {
+			JobExecution execution = invocation.getArgument(0);
+			exitStatusAtFinalization.set(execution.getExitStatus().getExitCode());
+			return null;
+		}).when(jobCompletionFileHandler).afterJob(org.mockito.ArgumentMatchers.any(JobExecution.class));
 		JobParameters parameters = parameterBuilder().addString(BDOKCommonBatchInputParameters.SKIP_CLEAN_KEY, "true")
 				.toJobParameters();
 		JobExecution jobExecution = launchJob(parameters);
 
 		assertThat(jobExecution.getExitStatus(), is(NavExitStatus.ERROR));
+		assertThat(exitStatusAtFinalization.get(), is(NavExitStatus.ERROR.getExitCode()));
 
 		List<Bdok100ArbTbl> all = bdok100Repo.findAll();
 
@@ -382,8 +389,8 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 		assertThat(bdok100Repo.count(), is(0L));
 		assertThat(bdok100Repo.countByStatus(FEILET_GSAK), is(0L));
 
-		// avvik_lpf, avvik_jff, avvikrapport, kontrollrapport_1, kontrollrapport_2, xml_1, xml_2
-		assertThat(workspace.output().toFile().list().length, is(5));
+		assertThat(workspace.output().toFile().list().length, is(0));
+		assertThat(databaseOutputService.filesForJob(jobExecution.getJobInstance().getId()).size(), is(3));
 	}
 
 	@Test
@@ -394,21 +401,12 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 		assertThat(jobExecution.getExitStatus(), is(NavExitStatus.WARNING));
 	}
 
-	private Path findKontrollrapport(JobExecution jobExecution, boolean first) {
-		String kontrollrapportName = getKontrollrapport((Date) jobExecution.getExecutionContext().get(START_TIME_KEY));
-		ArrayList<String> files = Lists.newArrayList(workspace.output().toFile().list());
-		Collections.sort(files);
-		if (!first) {
-			Collections.reverse(files);
-		}
-		for (String filename : files) {
-			if (filename.startsWith(kontrollrapportName.substring(0, kontrollrapportName.length() - (FILE_DATE_FORMAT_MS + ".txt")
-					.length()))) {
-				kontrollrapportName = filename;
-				break;
-			}
-		}
-		return workspace.output().resolve(kontrollrapportName);
+	private List<String> kontrollrapportLines(JobExecution jobExecution) {
+		ArgumentCaptor<byte[]> content = ArgumentCaptor.forClass(byte[].class);
+		verify(remoteReportWriter, atLeastOnce()).writeFile(
+			argThat(path -> path.startsWith("output/BDOK100_kontrollrapport_"
+				+ formatDateToSeconds((Date) jobExecution.getExecutionContext().get(START_TIME_KEY)))), content.capture());
+		return new String(content.getValue(), BDOK100_OUTPUT_CHARSET).lines().toList();
 	}
 
 	private void validateMessageInQueue() {

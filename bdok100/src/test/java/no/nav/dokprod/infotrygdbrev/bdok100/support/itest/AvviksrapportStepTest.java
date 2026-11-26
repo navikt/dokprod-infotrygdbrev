@@ -11,6 +11,7 @@ import no.nav.dokprod.infotrygdbrev.bdok100.Bdok100Constants;
 import no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100ArbTbl;
 import no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100Status;
 import no.nav.dokprod.infotrygdbrev.bdok100.repo.Bdok100Repo;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.DatabaseOutputService.AvvikType;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,7 +58,12 @@ public class AvviksrapportStepTest extends AbstractBdok100StepTest {
 		JobExecution jobExecution = launchStep("createAvviksrapportStep", getDefaultBdok100JobParameters(), jobExecutionContext);
 		assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
 
-		String outputFileAsString = getOutputFileAsString(FILENAME, Bdok100Constants.BDOK100_OUTPUT_CHARSET);
+		assertThat(AvvikType.REPORT.filename(START_TIME), is(FILENAME));
+		String outputFileAsString;
+		try (var stream = databaseOutputService.openStream(jobExecution.getJobInstance().getId(), AvvikType.REPORT)) {
+			outputFileAsString = new String(stream.readAllBytes(), Bdok100Constants.BDOK100_OUTPUT_CHARSET);
+		}
+		assertThat(workspace.output().toFile().list().length, is(0));
 		assertThat(outputFileAsString, containsString("ArkivID = ODIQ013010900000 Brev feilet, Something is wrong"));
 		assertThat(outputFileAsString, containsString("ArkivID = ODIQ013010900001 Brev feilet, Something is even more wrong"));
 	}

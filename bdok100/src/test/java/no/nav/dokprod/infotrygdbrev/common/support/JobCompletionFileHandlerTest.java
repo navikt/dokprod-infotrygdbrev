@@ -1,6 +1,9 @@
 package no.nav.dokprod.infotrygdbrev.common.support;
 
 import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.LocalFileService;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.DatabaseOutputService;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.DatabaseOutputService.AvvikType;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -14,6 +17,8 @@ import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.step.StepExecution;
 import org.springframework.batch.infrastructure.item.ExecutionContext;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Date;
@@ -34,13 +39,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 public class JobCompletionFileHandlerTest {
 
 	private final PostRunFileTransfer fileTransfer = mock(PostRunFileTransfer.class);
+	private final DatabaseOutputService databaseOutputService = mock(DatabaseOutputService.class);
 	private Bdok100BatchParameters batchParameters;
 	private JobCompletionFileHandler handler;
 
@@ -58,11 +66,11 @@ public class JobCompletionFileHandlerTest {
 			root.resolve("behandlet"),
 			2,
 			10);
-		handler = new JobCompletionFileHandler(fileTransfer, batchParameters);
+		handler = new JobCompletionFileHandler(fileTransfer, new LocalFileService(batchParameters), databaseOutputService);
 	}
 
 	@Test
-	public void shouldMoveAndUploadToBehandletWhenCompleted() throws Exception {
+	public void shouldMoveAndCleanLocalFilesWhenCompleted() throws Exception {
 		var output = batchParameters.outputFileLocation();
 		Files.createDirectories(output);
 		Files.writeString(output.resolve("result.txt"), "data");
@@ -83,7 +91,8 @@ public class JobCompletionFileHandlerTest {
 		String archive = "behandlet/bdok100-behandlet-" + formatDateToSeconds(new Date(0));
 		verify(fileTransfer).moveFileIfExists(JOURNALDATA_CSV, archive + "/" + JOURNALDATA_CSV);
 		verify(fileTransfer).moveFileIfExists(LINJEDATA_TXT, archive + "/" + LINJEDATA_TXT);
-		verify(fileTransfer).uploadFile(output.resolve("result.txt"), "output/result.txt");
+		verify(fileTransfer, never()).uploadContent(any(InputStream.class), any(String.class));
+		verify(databaseOutputService).deleteForJob(1L);
 		assertFalse(Files.exists(output.resolve("result.txt")));
 		assertFalse(Files.exists(batchParameters.inputFileLocation().resolve(JOURNALDATA_CSV)));
 		assertFalse(Files.exists(batchParameters.inputFileLocation().resolve(LINJEDATA_TXT)));
@@ -101,7 +110,10 @@ public class JobCompletionFileHandlerTest {
 		jobExecution.setExitStatus(ExitStatus.COMPLETED);
 		jobExecution.getExecutionContext().put(START_TIME_KEY, new Date(0));
 		addProcessedSteps(jobExecution);
-		doThrow(new IllegalStateException("upload failed")).when(fileTransfer).uploadFile(eq(result), any(String.class));
+		when(databaseOutputService.filesForJob(1L)).thenReturn(List.of(AvvikType.LINJEPRINTFIL));
+		when(databaseOutputService.openStream(1L, AvvikType.LINJEPRINTFIL)).thenReturn(new ByteArrayInputStream(new byte[0]));
+		doThrow(new IllegalStateException("upload failed")).when(fileTransfer)
+			.uploadContent(any(InputStream.class), any(String.class));
 
 		assertThrows(IllegalStateException.class, () -> handler.afterJob(jobExecution));
 
@@ -109,6 +121,42 @@ public class JobCompletionFileHandlerTest {
 		assertTrue(jobExecution.getStatus() == BatchStatus.FAILED);
 		assertTrue(jobExecution.getExitStatus().getExitCode().equals(ExitStatus.FAILED.getExitCode()));
 		assertFalse(jobExecution.getFailureExceptions().isEmpty());
+		verify(databaseOutputService, never()).deleteForJob(1L);
+	}
+
+	@Test
+	public void shouldStreamDatabaseFilesAndDeleteOnlyAfterSuccessfulUpload() {
+		JobExecution jobExecution = new JobExecution(1L, new JobInstance(1L, "BDOK100"), new JobParameters());
+		jobExecution.setExitStatus(ExitStatus.COMPLETED);
+		jobExecution.getExecutionContext().put(START_TIME_KEY, new Date(0));
+		addProcessedSteps(jobExecution);
+		when(databaseOutputService.filesForJob(1L)).thenReturn(List.of(AvvikType.LINJEPRINTFIL, AvvikType.REPORT));
+		when(databaseOutputService.openStream(1L, AvvikType.LINJEPRINTFIL)).thenReturn(new ByteArrayInputStream(new byte[0]));
+		when(databaseOutputService.openStream(1L, AvvikType.REPORT)).thenReturn(new ByteArrayInputStream(new byte[0]));
+
+		handler.afterJob(jobExecution);
+
+		var order = inOrder(fileTransfer, databaseOutputService);
+		order.verify(fileTransfer).uploadContent(any(InputStream.class), eq("output/" + AvvikType.LINJEPRINTFIL.filename(new Date(0))));
+		order.verify(fileTransfer).uploadContent(any(InputStream.class), eq("output/" + AvvikType.REPORT.filename(new Date(0))));
+		order.verify(databaseOutputService).deleteForJob(1L);
+	}
+
+	@Test
+	public void shouldRetainDatabaseRowsWhenSftpUploadFails() {
+		JobExecution jobExecution = new JobExecution(1L, new JobInstance(1L, "BDOK100"), new JobParameters());
+		jobExecution.setExitStatus(ExitStatus.COMPLETED);
+		jobExecution.getExecutionContext().put(START_TIME_KEY, new Date(0));
+		addProcessedSteps(jobExecution);
+		when(databaseOutputService.filesForJob(1L)).thenReturn(List.of(AvvikType.LINJEPRINTFIL));
+		when(databaseOutputService.openStream(1L, AvvikType.LINJEPRINTFIL)).thenReturn(new ByteArrayInputStream(new byte[0]));
+		doThrow(new IllegalStateException("SFTP unavailable")).when(fileTransfer)
+			.uploadContent(any(InputStream.class), any(String.class));
+
+		assertThrows(IllegalStateException.class, () -> handler.afterJob(jobExecution));
+
+		verify(databaseOutputService, never()).deleteForJob(1L);
+		assertTrue(jobExecution.getStatus() == BatchStatus.FAILED);
 	}
 
 	@Test
@@ -149,11 +197,14 @@ public class JobCompletionFileHandlerTest {
 		jobExecution.setExitStatus(ExitStatus.FAILED);
 		jobExecution.getExecutionContext().put(START_TIME_KEY, new Date(0));
 		addProcessedSteps(jobExecution);
+		when(databaseOutputService.filesForJob(1L)).thenReturn(List.of(AvvikType.REPORT));
+		when(databaseOutputService.openStream(1L, AvvikType.REPORT)).thenReturn(new ByteArrayInputStream(new byte[0]));
 
 		handler.afterJob(jobExecution);
 
 		verify(fileTransfer).moveFileIfExists(JOURNALDATA_CSV, "failed/bdok100-failed-" + formatDateToSeconds(new Date(0)) + "/" + JOURNALDATA_CSV);
-		verify(fileTransfer).uploadFile(output.resolve("error.txt"), "output/error.txt");
+		verify(fileTransfer).uploadContent(any(InputStream.class), eq("output/" + AvvikType.REPORT.filename(new Date(0))));
+		verify(databaseOutputService, never()).deleteForJob(1L);
 		assertFalse(Files.exists(input.resolve(JOURNALDATA_CSV)));
 		assertFalse(Files.exists(output.resolve("error.txt")));
 	}
@@ -197,7 +248,7 @@ public class JobCompletionFileHandlerTest {
 		handler.afterJob(jobExecution);
 
 		verify(fileTransfer, never()).moveFileIfExists(any(String.class), any(String.class));
-		verify(fileTransfer, never()).uploadFile(any(Path.class), any(String.class));
+		verify(fileTransfer, never()).uploadContent(any(InputStream.class), any(String.class));
 	}
 
 	private void addProcessedSteps(JobExecution jobExecution) {

@@ -47,9 +47,6 @@ public class InputValidationStepTest extends AbstractBdok100StepTest {
 		Files.delete(workspace.input().resolve(FilenameHelper.LINJEDATA_TXT));
 		Files.delete(workspace.staticInput().resolve(FilenameHelper.KONTOR_CSV));
 		Files.delete(workspace.staticInput().resolve(FilenameHelper.VEDLEGG_CSV));
-		Files.delete(workspace.failed());
-		Files.delete(workspace.behandlet());
-		Files.delete(workspace.output());
 		ExecutionContext jobExecutionContext = getJobExecutionContext();
 		jobExecutionContext.put(CLEAN_KEY, true);
 		JobExecution jobExecution = launchStep(STEP_NAME, defaultBdok100JobParameters, jobExecutionContext);
@@ -104,29 +101,11 @@ public class InputValidationStepTest extends AbstractBdok100StepTest {
 	}
 
 	@Test
-	public void shouldFailCannotWriteBehandlet() throws Exception {
-		JobParameters jobParameters = getDefaultBdok100JobParameters();
+	public void shouldIgnoreMissingLocalOutputDirectories() throws Exception {
 		Files.delete(workspace.behandlet());
-		JobExecution jobExecution = launchStep(STEP_NAME, jobParameters, getJobExecutionContext());
-		assertThat(jobExecution.getExitStatus().getExitCode(), is(ExitStatus.FAILED.getExitCode()));
-		assertThat(jobExecution.getExitStatus().toString(), containsString("behandlet"));
-	}
-
-	@Test
-	public void shouldFailCannotWriteFailed() throws Exception {
-		JobParameters jobParameters = getDefaultBdok100JobParameters();
 		Files.delete(workspace.failed());
-		JobExecution jobExecution = launchStep(STEP_NAME, jobParameters, getJobExecutionContext());
-		assertThat(jobExecution.getExitStatus().getExitCode(), is(ExitStatus.FAILED.getExitCode()));
-		assertThat(jobExecution.getExitStatus().toString(), containsString("failed"));
-	}
-
-	@Test
-	public void shouldFailCannotWriteOutFolder() throws Exception {
-		JobParameters jobParameters = getDefaultBdok100JobParameters();
 		Files.delete(workspace.output());
-		JobExecution jobExecution = launchStep(STEP_NAME, jobParameters, getJobExecutionContext());
-		assertThat(jobExecution.getExitStatus().getExitCode(), is(ExitStatus.FAILED.getExitCode()));
-		assertThat(jobExecution.getExitStatus().toString(), containsString("output"));
+		JobExecution jobExecution = launchStep(STEP_NAME, getDefaultBdok100JobParameters(), getJobExecutionContext());
+		assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
 	}
 }

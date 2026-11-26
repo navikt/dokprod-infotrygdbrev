@@ -1,14 +1,18 @@
 package no.nav.dokprod.infotrygdbrev.bdok100.support;
 
-import static no.nav.brevogarkiv.batch.common.CommonBatchInputParameters.OUTPUT_FILE_LOCATION_KEY;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Maps;
-import com.google.common.io.Files;
 import no.nav.brevogarkiv.batch.common.CommonBatchInputParameters;
 import no.nav.dokprod.infotrygdbrev.bdok100.Bdok100Constants;
 import no.nav.dokprod.infotrygdbrev.bdok100.domain.Bdok100Status;
@@ -21,8 +25,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.scope.context.StepContext;
@@ -31,7 +35,6 @@ import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Map;
 
 /**
@@ -47,6 +50,8 @@ public class KontrollrapportTaskletTest {
 
 	@Mock
 	private Bdok100Repo repo;
+	@Mock
+	private RemoteReportWriter remoteReportWriter;
 
 	@Mock
 	private ChunkContext chunk;
@@ -55,7 +60,6 @@ public class KontrollrapportTaskletTest {
 	@Mock
 	private StepContribution stepContribution;
 
-	@InjectMocks
 	private KontrollrapportTasklet kontrollrapportTasklet;
 
 	private DateTimeFormatter format = DateTimeFormat.forPattern(Bdok100Constants.FILE_DATE_FORMAT);
@@ -65,8 +69,7 @@ public class KontrollrapportTaskletTest {
 	public void setUp() throws IOException {
 		Map<String, Object> map = Maps.newHashMap();
 		outputFolder = folder.newFolder();
-		Path absolutePath = Path.of(outputFolder.getAbsolutePath());
-		map.put(OUTPUT_FILE_LOCATION_KEY, absolutePath);
+		kontrollrapportTasklet = new KontrollrapportTasklet(repo, remoteReportWriter);
 		LocalDateTime date = LocalDateTime.parse(DATE_STRING, format);
 		map.put(CommonBatchInputParameters.START_TIME_KEY, date.toDate());
 
@@ -89,10 +92,12 @@ public class KontrollrapportTaskletTest {
 	public void shouldRun() throws Exception {
 		RepeatStatus status = kontrollrapportTasklet.execute(stepContribution, chunk);
 		assertThat(status, is(RepeatStatus.FINISHED));
-		String[] list = outputFolder.list();
-		String filename = list != null ? list[0] : "";
-		assertThat(filename, startsWith("BDOK100_kontrollrapport_" + DATE_STRING));
-		String fileAsString = Files.toString(new File(outputFolder, filename), Bdok100Constants.BDOK100_OUTPUT_CHARSET);
+		ArgumentCaptor<String> path = ArgumentCaptor.forClass(String.class);
+		ArgumentCaptor<byte[]> bytes = ArgumentCaptor.forClass(byte[].class);
+		verify(remoteReportWriter).writeFile(path.capture(), bytes.capture());
+		assertThat(path.getValue(), startsWith("output/BDOK100_kontrollrapport_" + DATE_STRING));
+		assertEquals(0, outputFolder.list().length);
+		String fileAsString = new String(bytes.getValue(), Bdok100Constants.BDOK100_OUTPUT_CHARSET);
 		assertThat(fileAsString, containsString("Antall dokumenter i linjeprintfil: 5"));
 		assertThat(fileAsString, containsString("Antall rader i journalføringsfil: 4"));
 		assertThat(fileAsString, containsString("Antall brev i dokumentbestilling: 6"));
@@ -105,4 +110,10 @@ public class KontrollrapportTaskletTest {
 		assertThat(fileAsString, containsString("Antall brev der brevtype <> OK: 1"));
 	}
 
+	@Test
+	public void shouldFailWhenRemoteWriteFails() {
+		doThrow(new IllegalStateException("SFTP unavailable")).when(remoteReportWriter).writeFile(anyString(), any(byte[].class));
+
+		assertThrows(IllegalStateException.class, () -> kontrollrapportTasklet.execute(stepContribution, chunk));
+	}
 }

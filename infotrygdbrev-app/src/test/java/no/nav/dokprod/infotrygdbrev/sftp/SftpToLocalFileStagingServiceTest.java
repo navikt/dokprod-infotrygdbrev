@@ -1,6 +1,7 @@
 package no.nav.dokprod.infotrygdbrev.sftp;
 
 import no.nav.dokprod.infotrygdbrev.bdok100.config.Bdok100BatchParameters;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.LocalFileService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,7 +43,7 @@ public class SftpToLocalFileStagingServiceTest {
 				root.resolve("behandlet"),
 				2,
 				10);
-		service = new SftpToLocalFileStagingService(sftpFileService, batchParameters);
+		service = new SftpToLocalFileStagingService(sftpFileService, new LocalFileService(batchParameters));
 	}
 
 	@Test
@@ -56,9 +57,11 @@ public class SftpToLocalFileStagingServiceTest {
 
 		assertTrue(Files.notExists(staleInput));
 		assertTrue(Files.notExists(staleStaticInput));
-		assertTrue(Files.isDirectory(batchParameters.outputFileLocation()));
-		assertTrue(Files.isDirectory(batchParameters.failedFileLocation()));
-		assertTrue(Files.isDirectory(batchParameters.behandletFileLocation()));
+		assertTrue(Files.isDirectory(batchParameters.inputFileLocation()));
+		assertTrue(Files.isDirectory(batchParameters.staticInputFileLocation()));
+		assertTrue(Files.notExists(batchParameters.outputFileLocation()));
+		assertTrue(Files.notExists(batchParameters.failedFileLocation()));
+		assertTrue(Files.notExists(batchParameters.behandletFileLocation()));
 	}
 
 	@Test

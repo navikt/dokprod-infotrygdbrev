@@ -1,16 +1,18 @@
 package no.nav.dokprod.infotrygdbrev.sftp;
 
 import no.nav.dokprod.infotrygdbrev.bdok100.config.DokprodInfotrygdbrevProperties;
+import no.nav.dokprod.infotrygdbrev.bdok100.support.RemoteReportWriter;
 import no.nav.dokprod.infotrygdbrev.common.support.PostRunFileTransfer;
 import org.apache.sshd.sftp.client.SftpClient;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
+import java.io.FilterInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -18,7 +20,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class SftpFileService implements PostRunFileTransfer {
+public class SftpFileService implements PostRunFileTransfer, RemoteReportWriter {
 
 	private final SftpRemoteFileTemplate remoteFileTemplate;
 	private final DokprodInfotrygdbrevProperties.SftpProperties sftpProperties;
@@ -92,18 +94,61 @@ public class SftpFileService implements PostRunFileTransfer {
 	}
 
 	@Override
-	public void uploadFile(Path localFile, String targetRelativePath) {
-		if (!Files.isRegularFile(localFile)) {
-			throw new IllegalStateException("Local file not found for upload: " + localFile);
-		}
+	public void writeFile(String targetRelativePath, byte[] content) {
 		String targetPath = workspacePath(targetRelativePath);
 		remoteFileTemplate.execute(session -> {
 			ensureRemoteDirectories(session, parentDirectory(targetPath));
-			try (InputStream inputStream = Files.newInputStream(localFile)) {
-				session.write(inputStream, targetPath);
+			session.write(new ByteArrayInputStream(content), targetPath);
+			return null;
+		});
+	}
+
+	@Override
+	public void uploadContent(InputStream content, String targetRelativePath) {
+		String targetPath = workspacePath(targetRelativePath);
+		remoteFileTemplate.execute(session -> {
+			ensureRemoteDirectories(session, parentDirectory(targetPath));
+			CountingInputStream countedContent = new CountingInputStream(content);
+			session.write(countedContent, targetPath);
+			if (countedContent.read() != -1) {
+				throw new IllegalStateException("SFTP upload did not consume the full content: " + targetPath);
+			}
+			String filename = Path.of(targetPath).getFileName().toString();
+			boolean sizeMatches = Arrays.stream(session.list(parentDirectory(targetPath)))
+				.anyMatch(entry -> entry.getFilename().equals(filename)
+					&& entry.getAttributes().isRegularFile()
+					&& entry.getAttributes().getSize() == countedContent.bytesRead);
+			if (!sizeMatches) {
+				throw new IllegalStateException("SFTP upload could not be verified: " + targetPath);
 			}
 			return null;
 		});
+	}
+
+	private static final class CountingInputStream extends FilterInputStream {
+		private long bytesRead;
+
+		private CountingInputStream(InputStream input) {
+			super(input);
+		}
+
+		@Override
+		public int read() throws IOException {
+			int value = super.read();
+			if (value != -1) {
+				bytesRead++;
+			}
+			return value;
+		}
+
+		@Override
+		public int read(byte[] buffer, int offset, int length) throws IOException {
+			int count = super.read(buffer, offset, length);
+			if (count > 0) {
+				bytesRead += count;
+			}
+			return count;
+		}
 	}
 
 	private void ensureRemoteDirectories(Session<SftpClient.DirEntry> session, String remoteDirectory) {
