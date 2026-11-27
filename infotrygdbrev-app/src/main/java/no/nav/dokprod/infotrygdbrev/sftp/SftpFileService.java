@@ -33,8 +33,8 @@ public class SftpFileService implements PostRunFileTransfer, RemoteReportWriter 
 		this.sftpProperties = dokprodInfotrygdbrevProperties.sftp();
 	}
 
-	public Set<String> listFiles() {
-		return Arrays.stream(remoteFileTemplate.list(sftpProperties.remoteInputDirectory()))
+	public Set<String> listFiles(String directory) {
+		return Arrays.stream(remoteFileTemplate.list(directory))
 			.filter(entry -> !entry.getAttributes().isDirectory())
 			.map(SftpClient.DirEntry::getFilename)
 			.collect(Collectors.toUnmodifiableSet());

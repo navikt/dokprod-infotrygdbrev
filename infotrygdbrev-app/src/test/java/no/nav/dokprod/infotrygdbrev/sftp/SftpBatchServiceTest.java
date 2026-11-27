@@ -43,6 +43,8 @@ public class SftpBatchServiceTest {
 	private final SftpFileService sftpFileService = mock(SftpFileService.class);
 	private final SftpToLocalFileStagingService stagingService = mock(SftpToLocalFileStagingService.class);
 	private final DokprodInfotrygdbrevProperties properties = mock(DokprodInfotrygdbrevProperties.class);
+	private final DokprodInfotrygdbrevProperties.SftpProperties sftpProperties =
+		mock(DokprodInfotrygdbrevProperties.SftpProperties.class);
 	private final Bdok100JobService jobService = mock(Bdok100JobService.class);
 	private Bdok100BatchParameters batchParameters;
 	private SftpBatchService service;
@@ -52,6 +54,9 @@ public class SftpBatchServiceTest {
 
 	@Before
 	public void setUp() {
+		when(properties.sftp()).thenReturn(sftpProperties);
+		when(sftpProperties.remoteInputDirectory()).thenReturn("inbound");
+		when(sftpProperties.remoteOutputDirectory()).thenReturn("output");
 		Path root = temporaryFolder.getRoot().toPath();
 		batchParameters = new Bdok100BatchParameters(
 				root.resolve("input"),
@@ -66,7 +71,7 @@ public class SftpBatchServiceTest {
 
 	@Test
 	public void shouldNotStartBatchWhenReadyFileIsMissing() throws Exception {
-		when(sftpFileService.listFiles()).thenReturn(Set.of(JOURNALDATA_CSV));
+		when(sftpFileService.listFiles("inbound")).thenReturn(Set.of(JOURNALDATA_CSV));
 
 		Optional<JobExecution> execution = service.startBatchIfReady();
 
@@ -76,7 +81,7 @@ public class SftpBatchServiceTest {
 
 	@Test
 	public void shouldNotStartBatchWhenStartedMarkerExists() throws Exception {
-		when(sftpFileService.listFiles()).thenReturn(Set.of(
+		when(sftpFileService.listFiles("inbound")).thenReturn(Set.of(
 				READY_FILE_NAME,
 				"started-2026-10-27_14-30-00.txt"));
 
@@ -91,7 +96,7 @@ public class SftpBatchServiceTest {
 	public void shouldStageFilesAndStartBatchWhenReadyFileExists() throws Exception {
 		JobExecution expectedExecution = mock(JobExecution.class);
 		ArgumentCaptor<JobParameters> jobParametersCaptor = ArgumentCaptor.forClass(JobParameters.class);
-		when(sftpFileService.listFiles()).thenReturn(requiredRemoteFiles());
+		when(sftpFileService.listFiles("inbound")).thenReturn(requiredRemoteFiles());
 		when(jobService.start(any(JobParameters.class))).thenReturn(expectedExecution);
 		when(expectedExecution.getStatus()).thenReturn(BatchStatus.COMPLETED);
 
@@ -109,11 +114,12 @@ public class SftpBatchServiceTest {
 		String startedFileName = "started-" + formatDateToSeconds(startTime) + ".txt";
 		verify(sftpFileService).createEmptyFile(startedFileName);
 		verify(sftpFileService).deleteFile(startedFileName);
+		verify(sftpFileService).listFiles("output");
 	}
 
 	@Test
 	public void shouldNotStageOrStartBatchWhenRequiredFileIsMissing() {
-		when(sftpFileService.listFiles()).thenReturn(Set.of(
+		when(sftpFileService.listFiles("inbound")).thenReturn(Set.of(
 				READY_FILE_NAME,
 				JOURNALDATA_CSV,
 				LINJEDATA_TXT,
@@ -129,7 +135,7 @@ public class SftpBatchServiceTest {
 
 	@Test
 	public void shouldNotStartBatchWhenStagingFails() {
-		when(sftpFileService.listFiles()).thenReturn(requiredRemoteFiles());
+		when(sftpFileService.listFiles("inbound")).thenReturn(requiredRemoteFiles());
 		doThrow(new IllegalStateException("staging failed"))
 				.when(stagingService)
 				.stageFile(JOURNALDATA_CSV, batchParameters.inputFileLocation().resolve(JOURNALDATA_CSV));
@@ -143,7 +149,7 @@ public class SftpBatchServiceTest {
 
 	@Test
 	public void shouldNotStartBatchWhenStartedMarkerCannotBeCreated() {
-		when(sftpFileService.listFiles()).thenReturn(requiredRemoteFiles());
+		when(sftpFileService.listFiles("inbound")).thenReturn(requiredRemoteFiles());
 		doThrow(new IllegalStateException("write failed"))
 				.when(sftpFileService)
 				.createEmptyFile(any(String.class));
@@ -158,7 +164,7 @@ public class SftpBatchServiceTest {
 	@Test
 	public void shouldKeepStartedMarkerWhenBatchFails() throws Exception {
 		JobExecution failedExecution = mock(JobExecution.class);
-		when(sftpFileService.listFiles()).thenReturn(requiredRemoteFiles());
+		when(sftpFileService.listFiles("inbound")).thenReturn(requiredRemoteFiles());
 		when(jobService.start(any(JobParameters.class))).thenReturn(failedExecution);
 		when(failedExecution.getStatus()).thenReturn(BatchStatus.FAILED);
 

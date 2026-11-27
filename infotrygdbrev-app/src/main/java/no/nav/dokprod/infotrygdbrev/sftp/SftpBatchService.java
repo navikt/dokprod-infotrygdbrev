@@ -53,15 +53,16 @@ public class SftpBatchService {
 	@Scheduled(cron = "${dokprod.infotrygdbrev.batch.cron}")
 	public Optional<JobExecution> startBatchIfReady() throws JobExecutionException {
 		Set<String> basedirs = sftpFileService.listBaseDirs();
-		Set<String> remoteFiles = sftpFileService.listFiles();
-		log.debug("bdok100 found files. dirs: {} files: {}", basedirs, remoteFiles);
+		Set<String> remoteFiles = sftpFileService.listFiles(dokprodInfotrygdbrevProperties.sftp().remoteInputDirectory());
+		Set<String> remoteOutputFiles = sftpFileService.listFiles(dokprodInfotrygdbrevProperties.sftp().remoteOutputDirectory());
+		log.debug("bdok100 found files. dirs: {} files: {} {}", basedirs, remoteFiles, remoteOutputFiles);
 		if (!remoteFiles.contains(READY_FILE_NAME)) {
 			if (!remoteFiles.isEmpty()) {
 				log.debug("bdok100 found files, but no ready-marker. files: {}", remoteFiles);
 				log.debug("bdok100 lager en ready.txt sjæl yolo");
 				sftpFileService.createEmptyFile(READY_FILE_NAME);
 			} else {
-				Set<String> remoteIncludingDirs = sftpFileService.listFiles();
+				Set<String> remoteIncludingDirs = sftpFileService.listBaseDirs();
 				log.debug("bdok100 found no files on sftp: ls: {}", remoteIncludingDirs);
 			}
 			return Optional.empty();

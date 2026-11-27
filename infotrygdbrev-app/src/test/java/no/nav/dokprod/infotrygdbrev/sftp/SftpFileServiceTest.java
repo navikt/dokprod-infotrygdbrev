@@ -69,7 +69,7 @@ public class SftpFileServiceTest {
 		};
 		when(remoteFileTemplate.list(REMOTE_DIRECTORY)).thenReturn(entries);
 
-		assertEquals(Set.of("a.txt", "b.txt"), service.listFiles());
+		assertEquals(Set.of("a.txt", "b.txt"), service.listFiles(REMOTE_DIRECTORY));
 	}
 
 	@Test
