@@ -39,6 +39,11 @@ public class SftpFileService implements PostRunFileTransfer, RemoteReportWriter 
 			.map(SftpClient.DirEntry::getFilename)
 			.collect(Collectors.toUnmodifiableSet());
 	}
+	public Set<String> listBaseDirs() {
+		return Arrays.stream(remoteFileTemplate.list("."))
+			.map(SftpClient.DirEntry::getFilename)
+			.collect(Collectors.toUnmodifiableSet());
+	}
 
 	public Set<String> list() {
 		return Arrays.stream(remoteFileTemplate.list(sftpProperties.remoteDirectory()))
