@@ -95,7 +95,7 @@ public class KontrollrapportTaskletTest {
 		ArgumentCaptor<String> path = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<byte[]> bytes = ArgumentCaptor.forClass(byte[].class);
 		verify(remoteReportWriter).writeFile(path.capture(), bytes.capture());
-		assertThat(path.getValue(), startsWith("output/BDOK100_kontrollrapport_" + DATE_STRING));
+		assertThat(path.getValue(), startsWith("BDOK100_kontrollrapport_" + DATE_STRING));
 		assertEquals(0, outputFolder.list().length);
 		String fileAsString = new String(bytes.getValue(), Bdok100Constants.BDOK100_OUTPUT_CHARSET);
 		assertThat(fileAsString, containsString("Antall dokumenter i linjeprintfil: 5"));

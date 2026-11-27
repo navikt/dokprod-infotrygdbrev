@@ -36,10 +36,10 @@ public class SftpFileServiceTest {
 
 	@Before
 	public void setUp() {
-		service = newService(REMOTE_DIRECTORY);
+		service = newService(REMOTE_DIRECTORY, "/output");
 	}
 
-	private SftpFileService newService(String remoteDirectory) {
+	private SftpFileService newService(String remoteInputDirectory, String remoteOutputDirectory) {
 		DokprodInfotrygdbrevProperties properties = new DokprodInfotrygdbrevProperties(
 				null,
 				null,
@@ -50,7 +50,8 @@ public class SftpFileServiceTest {
 						"private-key",
 						"",
 						"known-hosts",
-						remoteDirectory,
+						remoteInputDirectory,
+						remoteOutputDirectory,
 						Duration.ofSeconds(30)),
 						new DokprodInfotrygdbrevProperties.ServiceUser("", ""),
 				false,
@@ -156,7 +157,7 @@ public class SftpFileServiceTest {
 		when(session.mkdir("/output")).thenReturn(true);
 		byte[] contents = "rapport".getBytes();
 
-		service.writeFile("output/rapport.txt", contents);
+		service.writeFile("rapport.txt", contents);
 
 		ArgumentCaptor<InputStream> input = ArgumentCaptor.forClass(InputStream.class);
 		verify(session).write(input.capture(), eq("/output/rapport.txt"));
@@ -181,7 +182,7 @@ public class SftpFileServiceTest {
 		SftpClient.DirEntry uploadedFile = remoteFile("avvik.txt", content.length);
 		when(session.list("/output")).thenReturn(new SftpClient.DirEntry[]{uploadedFile});
 
-		service.uploadContent(new ByteArrayInputStream(content), "output/avvik.txt");
+		service.uploadContent(new ByteArrayInputStream(content), "avvik.txt");
 
 		verify(session).write(any(InputStream.class), eq("/output/avvik.txt"));
 		verify(session).list("/output");
@@ -198,7 +199,7 @@ public class SftpFileServiceTest {
 		when(session.mkdir("/output")).thenReturn(true);
 
 		assertThrows(IllegalStateException.class,
-			() -> service.uploadContent(new ByteArrayInputStream("avvik".getBytes()), "output/avvik.txt"));
+			() -> service.uploadContent(new ByteArrayInputStream("avvik".getBytes()), "avvik.txt"));
 	}
 
 	@Test
@@ -221,14 +222,14 @@ public class SftpFileServiceTest {
 			new SftpClient.DirEntry[]{truncatedFile});
 
 		assertThrows(IllegalStateException.class,
-			() -> service.uploadContent(new ByteArrayInputStream("avvik".getBytes()), "output/avvik.txt"));
+			() -> service.uploadContent(new ByteArrayInputStream("avvik".getBytes()), "avvik.txt"));
 		assertThrows(IllegalStateException.class,
-			() -> service.uploadContent(new ByteArrayInputStream("avvik".getBytes()), "output/avvik.txt"));
+			() -> service.uploadContent(new ByteArrayInputStream("avvik".getBytes()), "avvik.txt"));
 	}
 
 	@Test
-	public void shouldUseSiblingDirectoriesForRelativeInputPath() throws Exception {
-		service = newService("inbound");
+	public void shouldUseConfiguredOutputDirectoryIndependentlyOfInputArchive() throws Exception {
+		service = newService("inbound", "reports");
 		Session<SftpClient.DirEntry> session = mock(Session.class);
 		doAnswer(invocation -> {
 			SessionCallback<SftpClient.DirEntry, Void> callback = invocation.getArgument(0);
@@ -237,14 +238,14 @@ public class SftpFileServiceTest {
 		when(session.exists("inbound/source.txt")).thenReturn(true);
 		when(session.mkdir("behandlet")).thenReturn(true);
 		when(session.mkdir("behandlet/bdok100-behandlet-2026")).thenReturn(true);
-		when(session.mkdir("output")).thenReturn(true);
+		when(session.mkdir("reports")).thenReturn(true);
 		SftpClient.DirEntry uploadedFile = remoteFile("result.txt", 0);
-		when(session.list("output")).thenReturn(new SftpClient.DirEntry[]{uploadedFile});
+		when(session.list("reports")).thenReturn(new SftpClient.DirEntry[]{uploadedFile});
 		service.moveFileIfExists("source.txt", "behandlet/bdok100-behandlet-2026/source.txt");
-		service.uploadContent(new ByteArrayInputStream(new byte[0]), "output/result.txt");
+		service.uploadContent(new ByteArrayInputStream(new byte[0]), "result.txt");
 
 		verify(session).rename("inbound/source.txt", "behandlet/bdok100-behandlet-2026/source.txt");
-		verify(session).write(any(InputStream.class), eq("output/result.txt"));
+		verify(session).write(any(InputStream.class), eq("reports/result.txt"));
 	}
 
 	private SftpClient.DirEntry entry(String name, boolean directory) {

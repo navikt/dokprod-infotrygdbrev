@@ -7,5 +7,5 @@ public interface PostRunFileTransfer {
 
 	boolean moveFileIfExists(String sourceFileName, String targetRelativePath);
 
-	void uploadContent(InputStream content, String targetRelativePath);
+	void uploadContent(InputStream content, String fileName);
 }

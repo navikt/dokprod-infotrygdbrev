@@ -23,7 +23,6 @@ public class JobCompletionFileHandler implements JobExecutionListener {
 	private static final String WARNING = "WARNING";
 	private static final String COMPLETED = "COMPLETED";
 	private static final String STOPPED = "STOPPED";
-	private static final String OUTPUT_DIRECTORY_NAME = "output";
 	private static final String BEHANDLET_DIRECTORY_NAME = "behandlet";
 	private static final String FAILED_DIRECTORY_NAME = "failed";
 
@@ -96,7 +95,7 @@ public class JobCompletionFileHandler implements JobExecutionListener {
 	private void uploadDatabaseOutputFiles(long jobInstanceId, Date startTime) {
 		for (var type : databaseOutputService.filesForJob(jobInstanceId)) {
 			try (var content = databaseOutputService.openStream(jobInstanceId, type)) {
-				fileTransfer.uploadContent(content, OUTPUT_DIRECTORY_NAME + "/" + type.filename(startTime));
+				fileTransfer.uploadContent(content, type.filename(startTime));
 			} catch (IOException e) {
 				throw new IllegalStateException("Failed to upload BDOK100 output " + type, e);
 			}

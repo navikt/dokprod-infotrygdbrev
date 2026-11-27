@@ -137,8 +137,8 @@ public class JobCompletionFileHandlerTest {
 		handler.afterJob(jobExecution);
 
 		var order = inOrder(fileTransfer, databaseOutputService);
-		order.verify(fileTransfer).uploadContent(any(InputStream.class), eq("output/" + AvvikType.LINJEPRINTFIL.filename(new Date(0))));
-		order.verify(fileTransfer).uploadContent(any(InputStream.class), eq("output/" + AvvikType.REPORT.filename(new Date(0))));
+		order.verify(fileTransfer).uploadContent(any(InputStream.class), eq(AvvikType.LINJEPRINTFIL.filename(new Date(0))));
+		order.verify(fileTransfer).uploadContent(any(InputStream.class), eq(AvvikType.REPORT.filename(new Date(0))));
 		order.verify(databaseOutputService).deleteForJob(1L);
 	}
 
@@ -203,7 +203,7 @@ public class JobCompletionFileHandlerTest {
 		handler.afterJob(jobExecution);
 
 		verify(fileTransfer).moveFileIfExists(JOURNALDATA_CSV, "failed/bdok100-failed-" + formatDateToSeconds(new Date(0)) + "/" + JOURNALDATA_CSV);
-		verify(fileTransfer).uploadContent(any(InputStream.class), eq("output/" + AvvikType.REPORT.filename(new Date(0))));
+		verify(fileTransfer).uploadContent(any(InputStream.class), eq(AvvikType.REPORT.filename(new Date(0))));
 		verify(databaseOutputService, never()).deleteForJob(1L);
 		assertFalse(Files.exists(input.resolve(JOURNALDATA_CSV)));
 		assertFalse(Files.exists(output.resolve("error.txt")));

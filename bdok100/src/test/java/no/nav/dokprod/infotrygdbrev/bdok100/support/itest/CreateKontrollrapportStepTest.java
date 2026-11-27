@@ -134,7 +134,7 @@ public class CreateKontrollrapportStepTest extends AbstractBdok100StepTest {
 		assertThat(jobExecution.getExitStatus(), is(ExitStatus.COMPLETED));
 
 		ArgumentCaptor<byte[]> content = ArgumentCaptor.forClass(byte[].class);
-		verify(remoteReportWriter).writeFile(argThat(path -> path.startsWith("output/" + FILENAME_START)), content.capture());
+		verify(remoteReportWriter).writeFile(argThat(path -> path.startsWith(FILENAME_START)), content.capture());
 		assertEquals(0, workspace.output().toFile().list().length);
 		String outputFileAsString = new String(content.getValue(), Bdok100Constants.BDOK100_OUTPUT_CHARSET);
 		assertThat(outputFileAsString, containsString("Antall dokumenter i linjeprintfil: 7"));

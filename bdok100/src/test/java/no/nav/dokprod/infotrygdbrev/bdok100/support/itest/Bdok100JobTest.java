@@ -404,7 +404,7 @@ public class Bdok100JobTest extends AbstractBdok100BatchTest {
 	private List<String> kontrollrapportLines(JobExecution jobExecution) {
 		ArgumentCaptor<byte[]> content = ArgumentCaptor.forClass(byte[].class);
 		verify(remoteReportWriter, atLeastOnce()).writeFile(
-			argThat(path -> path.startsWith("output/BDOK100_kontrollrapport_"
+			argThat(path -> path.startsWith("BDOK100_kontrollrapport_"
 				+ formatDateToSeconds((Date) jobExecution.getExecutionContext().get(START_TIME_KEY)))), content.capture());
 		return new String(content.getValue(), BDOK100_OUTPUT_CHARSET).lines().toList();
 	}

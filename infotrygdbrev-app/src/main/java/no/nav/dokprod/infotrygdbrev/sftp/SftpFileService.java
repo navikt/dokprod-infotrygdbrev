@@ -34,7 +34,7 @@ public class SftpFileService implements PostRunFileTransfer, RemoteReportWriter 
 	}
 
 	public Set<String> listFiles() {
-		return Arrays.stream(remoteFileTemplate.list(sftpProperties.remoteDirectory()))
+		return Arrays.stream(remoteFileTemplate.list(sftpProperties.remoteInputDirectory()))
 			.filter(entry -> !entry.getAttributes().isDirectory())
 			.map(SftpClient.DirEntry::getFilename)
 			.collect(Collectors.toUnmodifiableSet());
@@ -46,7 +46,7 @@ public class SftpFileService implements PostRunFileTransfer, RemoteReportWriter 
 	}
 
 	public Set<String> list() {
-		return Arrays.stream(remoteFileTemplate.list(sftpProperties.remoteDirectory()))
+		return Arrays.stream(remoteFileTemplate.list(sftpProperties.remoteInputDirectory()))
 				.map(SftpClient.DirEntry::getFilename)
 				.collect(Collectors.toUnmodifiableSet());
 	}
@@ -73,7 +73,7 @@ public class SftpFileService implements PostRunFileTransfer, RemoteReportWriter 
 
 	public void moveFile(String sourceFileName, String targetRelativePath) {
 		String sourcePath = remotePath(sourceFileName);
-		String targetPath = workspacePath(targetRelativePath);
+		String targetPath = archivePath(targetRelativePath);
 		remoteFileTemplate.execute(session -> {
 			if (!session.exists(sourcePath)) {
 				throw new IllegalStateException("SFTP source file not found for move: " + sourceFileName);
@@ -87,7 +87,7 @@ public class SftpFileService implements PostRunFileTransfer, RemoteReportWriter 
 	@Override
 	public boolean moveFileIfExists(String sourceFileName, String targetRelativePath) {
 		String sourcePath = remotePath(sourceFileName);
-		String targetPath = workspacePath(targetRelativePath);
+		String targetPath = archivePath(targetRelativePath);
 		return remoteFileTemplate.execute(session -> {
 			if (!session.exists(sourcePath)) {
 				return false;
@@ -99,8 +99,8 @@ public class SftpFileService implements PostRunFileTransfer, RemoteReportWriter 
 	}
 
 	@Override
-	public void writeFile(String targetRelativePath, byte[] content) {
-		String targetPath = workspacePath(targetRelativePath);
+	public void writeFile(String fileName, byte[] content) {
+		String targetPath = outputPath(fileName);
 		remoteFileTemplate.execute(session -> {
 			ensureRemoteDirectories(session, parentDirectory(targetPath));
 			session.write(new ByteArrayInputStream(content), targetPath);
@@ -109,8 +109,8 @@ public class SftpFileService implements PostRunFileTransfer, RemoteReportWriter 
 	}
 
 	@Override
-	public void uploadContent(InputStream content, String targetRelativePath) {
-		String targetPath = workspacePath(targetRelativePath);
+	public void uploadContent(InputStream content, String fileName) {
+		String targetPath = outputPath(fileName);
 		remoteFileTemplate.execute(session -> {
 			ensureRemoteDirectories(session, parentDirectory(targetPath));
 			CountingInputStream countedContent = new CountingInputStream(content);
@@ -185,12 +185,16 @@ public class SftpFileService implements PostRunFileTransfer, RemoteReportWriter 
 	}
 
 	private String remotePath(String fileName) {
-		String remoteDirectory = sftpProperties.remoteDirectory();
+		String remoteDirectory = sftpProperties.remoteInputDirectory();
 		return remoteDirectory.endsWith("/") ? remoteDirectory + fileName : remoteDirectory + "/" + fileName;
 	}
 
-	private String workspacePath(String relativePath) {
-		Path inputDirectory = Path.of(sftpProperties.remoteDirectory()).normalize();
+	private String outputPath(String fileName) {
+		return Path.of(sftpProperties.remoteOutputDirectory()).resolve(fileName).toString();
+	}
+
+	private String archivePath(String relativePath) {
+		Path inputDirectory = Path.of(sftpProperties.remoteInputDirectory()).normalize();
 		Path workspaceDirectory = inputDirectory.getParent();
 		if (workspaceDirectory == null) {
 			workspaceDirectory = inputDirectory.isAbsolute() ? inputDirectory : Path.of("");

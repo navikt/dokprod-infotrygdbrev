@@ -56,7 +56,7 @@ public class KontrollrapportTasklet implements Tasklet {
 			sb.append("\r\nbrevkode=").append(countPair.getName()).append(": ").append(countPair.getCount());
 		}
 		String content = sb.toString();
-		remoteReportWriter.writeFile("output/" + getKontrollrapport(startTime),
+		remoteReportWriter.writeFile(getKontrollrapport(startTime),
 			content.getBytes(Bdok100Constants.BDOK100_OUTPUT_CHARSET));
 		return content;
 	}

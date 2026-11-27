@@ -52,14 +52,15 @@ public record DokprodInfotrygdbrevProperties(@Valid @NotNull Endpoints endpoints
 		@Exists @NotBlank String privateKeyFile,
 		@NotBlank String privateKeyPassphrase,
 		@Exists @NotBlank String knownHostsFile,
-		@NotBlank String remoteDirectory,
+		@NotBlank String remoteInputDirectory,
+		@NotBlank String remoteOutputDirectory,
 		@NotNull Duration timeout
 	) {
 
 		@Override
 		public String toString() {
-			return "SftpProperties[host=%s, port=%d, username=%s, privateKeyFile=%s, privateKeyPassphrase=********, knownHostsFile=%s, remoteDirectory=%s, timeout=%s]"
-				.formatted(host, port, username, privateKeyFile, knownHostsFile, remoteDirectory, timeout);
+			return "SftpProperties[host=%s, port=%d, username=%s, privateKeyFile=%s, privateKeyPassphrase=********, knownHostsFile=%s, remoteInputDirectory=%s, remoteOutputDirectory=%s, timeout=%s]"
+				.formatted(host, port, username, privateKeyFile, knownHostsFile, remoteInputDirectory, remoteOutputDirectory, timeout);
 		}
 	}
 
